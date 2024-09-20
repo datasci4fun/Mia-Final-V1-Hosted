@@ -2,12 +2,12 @@ import { ModelIcon } from "@/components/models/model-icon"
 import { WithTooltip } from "@/components/ui/with-tooltip"
 import { ChatbotUIContext } from "@/context/context"
 import { LLM_LIST } from "@/lib/models/llm/llm-list"
-import { cn } from "@/lib/utils"
+import { cn, preserveQueryParams } from "@/lib/utils" // Import preserveQueryParams
 import { Tables } from "@/supabase/types"
 import { LLM } from "@/types"
 import { IconRobotFace } from "@tabler/icons-react"
 import Image from "next/image"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation" // Import useSearchParams
 import { FC, useContext, useRef } from "react"
 import { DeleteChat } from "./delete-chat"
 import { UpdateChat } from "./update-chat"
@@ -27,13 +27,23 @@ export const ChatItem: FC<ChatItemProps> = ({ chat }) => {
 
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams() // Access current query parameters
   const isActive = params.chatid === chat.id || selectedChat?.id === chat.id
 
   const itemRef = useRef<HTMLDivElement>(null)
 
+  // Preserve query parameters during navigation
   const handleClick = () => {
     if (!selectedWorkspace) return
-    return router.push(`/${selectedWorkspace.id}/chat/${chat.id}`)
+
+    // Use the preserveQueryParams utility to maintain current query parameters
+    const preservedPath = preserveQueryParams(
+      `/${selectedWorkspace.id}/chat/${chat.id}`,
+      searchParams
+    )
+
+    console.log("Navigating to:", preservedPath) // Log the navigation path to verify parameters
+    router.push(preservedPath)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -99,10 +109,11 @@ export const ChatItem: FC<ChatItemProps> = ({ chat }) => {
           e.stopPropagation()
           e.preventDefault()
         }}
-        className={`ml-2 flex space-x-2 ${!isActive && "w-11 opacity-0 group-hover:opacity-100"}`}
+        className={`ml-2 flex space-x-2 ${
+          !isActive && "w-11 opacity-0 group-hover:opacity-100"
+        }`}
       >
         <UpdateChat chat={chat} />
-
         <DeleteChat chat={chat} />
       </div>
     </div>

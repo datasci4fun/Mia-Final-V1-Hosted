@@ -8,7 +8,7 @@ import { deleteMessagesIncludingAndAfter } from "@/db/messages"
 import { buildFinalMessages } from "@/lib/build-prompt"
 import { Tables } from "@/supabase/types"
 import { ChatMessage, ChatPayload, LLMID, ModelProvider } from "@/types"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation" // Import necessary hooks
 import { useContext, useEffect, useRef } from "react"
 import { LLM_LIST } from "../../../lib/models/llm/llm-list"
 import {
@@ -21,6 +21,12 @@ import {
   processResponse,
   validateChatSettings
 } from "../chat-helpers"
+
+// Function to preserve existing URL parameters like ?view=widget
+const preserveParams = (path: string) => {
+  const searchParams = new URLSearchParams(window.location.search)
+  return `${path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+}
 
 export const useChatHandler = () => {
   const router = useRouter()
@@ -175,7 +181,9 @@ export const useChatHandler = () => {
       // })
     }
 
-    return router.push(`/${selectedWorkspace.id}/chat`)
+    // Preserve existing parameters when navigating
+    const newPath = preserveParams(`/${selectedWorkspace.id}/chat`)
+    return router.push(newPath)
   }
 
   const handleFocusChatInput = () => {

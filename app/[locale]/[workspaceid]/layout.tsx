@@ -1,6 +1,7 @@
 "use client"
 
 import { Dashboard } from "@/components/ui/dashboard"
+import { WidgetDashboard } from "@/components/widget/ui/WidgetDashboard"
 import { ChatbotUIContext } from "@/context/context"
 import { getAssistantWorkspacesByWorkspaceId } from "@/db/assistants"
 import { getChatsByWorkspaceId } from "@/db/chats"
@@ -30,6 +31,9 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   const params = useParams()
   const searchParams = useSearchParams()
   const workspaceId = params.workspaceid as string
+
+  // Check for widget mode
+  const isWidgetView = searchParams.get("view") === "widget"
 
   const {
     setChatSettings,
@@ -61,9 +65,11 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
 
   useEffect(() => {
     ;(async () => {
-      const session = (await supabase.auth.getSession()).data.session
+      const { data: sessionData, error } = await supabase.auth.getSession()
 
-      if (!session) {
+      if (!sessionData.session || error) {
+        // Log the error to ensure there are no issues with fetching the session
+        console.error("Session error:", error)
         return router.push("/login")
       } else {
         await fetchWorkspaceData(workspaceId)
@@ -179,5 +185,16 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
     return <Loading />
   }
 
-  return <Dashboard>{children}</Dashboard>
+  // Apply conditional rendering based on widget or full app
+  return (
+    <>
+      {isWidgetView ? (
+        <div className="widget-layout">
+          <WidgetDashboard>{children}</WidgetDashboard>
+        </div>
+      ) : (
+        <Dashboard>{children}</Dashboard>
+      )}
+    </>
+  )
 }

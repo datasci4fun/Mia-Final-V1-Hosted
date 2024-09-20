@@ -42,6 +42,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { TextareaAutosize } from "../ui/textarea-autosize"
 import { WithTooltip } from "../ui/with-tooltip"
 import { ThemeSwitcher } from "./theme-switcher"
+import { SubmitButton } from "../ui/submit-button"
 
 interface ProfileSettingsProps {}
 
@@ -49,6 +50,8 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
   const {
     profile,
     setProfile,
+    isAnonymous,
+    setIsAnonymous,
     envKeyMap,
     setAvailableHostedModels,
     setAvailableOpenRouterModels,
@@ -72,7 +75,9 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
   const [profileInstructions, setProfileInstructions] = useState(
     profile?.profile_context || ""
   )
-
+  const [email, setEmail] = useState("") // State for email
+  const [password, setPassword] = useState("") // State for password
+  const [loading, setLoading] = useState(false) // State for loading
   const [useAzureOpenai, setUseAzureOpenai] = useState(
     profile?.use_azure_openai
   )
@@ -117,6 +122,30 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
   const [openrouterAPIKey, setOpenrouterAPIKey] = useState(
     profile?.openrouter_api_key || ""
   )
+
+  const handleConvertToUser = async () => {
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password
+      })
+
+      if (error) {
+        throw error
+      }
+
+      // Set isAnonymous to false after successful signup
+      setIsAnonymous(false)
+      toast.success("Successfully converted to a registered user!")
+      router.refresh()
+    } catch (error: any) {
+      toast.error(`Error: ${error.message}`)
+      console.error("Error converting session:", error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -757,6 +786,43 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
             </Button>
           </div>
         </div>
+        {/* Anonymous to Registered User Conversion */}
+        {isAnonymous && (
+          <div className="mt-8 space-y-4">
+            <h3 className="text-lg font-semibold">
+              Convert Your Anonymous Session to a Registered User
+            </h3>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                className="w-full"
+                placeholder="you@example.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)} // Set email value
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Password</Label>
+              <Input
+                className="w-full"
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)} // Set password value
+                required
+              />
+            </div>
+
+            <SubmitButton
+              onClick={handleConvertToUser}
+              disabled={loading || !email || !password}
+            >
+              {loading ? "Converting..." : "Convert to Registered User"}
+            </SubmitButton>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   )

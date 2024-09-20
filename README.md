@@ -20,7 +20,7 @@ Be back soon.
 
 ## Official Hosted Version
 
-Use Chatbot UI without having to host it yourself!
+Use Chatbot UI without having to host it yourself!!
 
 Find the official hosted version of Chatbot UI [here](https://chatbotui.com).
 

@@ -1,0 +1,51 @@
+/* app/globals.css */
+
+html, body {
+    height: 100%; /* Ensure the body takes full height */
+    margin: 0;
+    padding: 0;
+}
+
+.widget-outer-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+}
+
+.widget-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+/* Specific styling to ensure layout stays within bounds */
+.widget-content {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.widget-layout {
+    display: block; /* Adjust display for widget layout */
+    max-width: 600px; /* Example for the widget */
+    margin: auto; /* Center the widget */
+    height: 100vh;
+  }
+
+
+  .main-app {
+    display: flex; /* Only apply flex to the main app */
+  }
+    
+.sticky {
+    position: sticky;
+}
+
+@media (orientation: landscape) {
+    .widget-container {
+      max-width: 80%;
+      min-width: 50%;
+    }
+  }
+  

@@ -1,5 +1,6 @@
 import { ChatbotUIContext } from "@/context/context"
 import { useContext, useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 /**
  * Custom hook for handling chat history in the chat component.
@@ -10,19 +11,32 @@ import { useContext, useEffect, useState } from "react"
  *   - setNewMessageContentToNextUserMessage: Sets the new message content to the next user message in the chat history.
  */
 export const useChatHistoryHandler = () => {
-  const { setUserInput, chatMessages, isGenerating } =
+  const { setUserInput, chatMessages, isGenerating, selectedChat } =
     useContext(ChatbotUIContext)
   const userRoleString = "user"
 
   const [messageHistoryIndex, setMessageHistoryIndex] = useState<number>(
     chatMessages.length
   )
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     // If messages get deleted the history index pointed could be out of bounds
-    if (!isGenerating && messageHistoryIndex > chatMessages.length)
+    if (!isGenerating && messageHistoryIndex > chatMessages.length) {
       setMessageHistoryIndex(chatMessages.length)
+    }
   }, [chatMessages, isGenerating, messageHistoryIndex])
+
+  /**
+   * Function to preserve existing URL parameters like `?view=widget` during navigation.
+   */
+  const preserveParams = () => {
+    // Retrieve existing parameters from the URL
+    const currentParams = new URLSearchParams(searchParams.toString())
+    console.log("Preserving parameters:", currentParams.toString()) // Log the parameters being preserved
+    return currentParams.toString() ? `?${currentParams.toString()}` : ""
+  }
 
   /**
    * Sets the new message content to the previous user message.
@@ -43,6 +57,15 @@ export const useChatHistoryHandler = () => {
     if (previousUserMessage) {
       setUserInput(previousUserMessage.message.content)
       setMessageHistoryIndex(tempIndex - 1)
+
+      // Log navigation details
+      if (selectedChat) {
+        const path = `/${selectedChat.workspace_id}/chat/${selectedChat.id}${preserveParams()}`
+        console.log("Navigating to previous conversation:", path)
+        router.push(path)
+      } else {
+        console.error("Selected chat is not set")
+      }
     }
   }
 
@@ -68,6 +91,15 @@ export const useChatHistoryHandler = () => {
     setMessageHistoryIndex(
       nextUserMessage ? tempIndex + 1 : chatMessages.length
     )
+
+    // Log navigation details
+    if (selectedChat) {
+      const path = `/${selectedChat.workspace_id}/chat/${selectedChat.id}${preserveParams()}`
+      console.log("Navigating to next conversation:", path)
+      router.push(path)
+    } else {
+      console.error("Selected chat is not set")
+    }
   }
 
   return {

@@ -36,7 +36,6 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black",
     title: APP_DEFAULT_TITLE
-    // startUpImage: [],
   },
   formatDetection: {
     telephone: false
@@ -82,9 +81,25 @@ export default async function RootLayout({
       }
     }
   )
-  const session = (await supabase.auth.getSession()).data.session
+
+  // Check if there's an existing session
+  let session = (await supabase.auth.getSession()).data.session
+
+  // If no session, sign the user in anonymously
+  if (!session) {
+    const { data, error } = await supabase.auth.signInAnonymously()
+    if (!data.session) {
+      console.error("Anonymous login failed", error)
+    } else {
+      session = data.session
+      await supabase.auth.setSession(session) // Ensure session is persisted
+    }
+  }
 
   const { t, resources } = await initTranslations(locale, i18nNamespaces)
+  const isWidgetView =
+    typeof window !== "undefined" &&
+    window.location.search.includes("view=widget")
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -96,7 +111,9 @@ export default async function RootLayout({
             resources={resources}
           >
             <Toaster richColors position="top-center" duration={3000} />
-            <div className="bg-background text-foreground flex h-dvh flex-col items-center overflow-x-auto">
+            <div
+              className={`bg-background text-foreground h-dvh flex-col items-center overflow-x-auto ${isWidgetView ? "widget-layout" : "main-app flex"}`}
+            >
               {session ? <GlobalState>{children}</GlobalState> : children}
             </div>
           </TranslationsProvider>

@@ -1,18 +1,50 @@
-import { createClient } from "@/lib/supabase/middleware"
-import { i18nRouter } from "next-i18n-router"
-import { NextResponse, type NextRequest } from "next/server"
-import i18nConfig from "./i18nConfig"
+import { createClient } from "@/lib/supabase/middleware";
+import { i18nRouter } from "next-i18n-router";
+import { NextResponse, type NextRequest } from "next/server";
+import i18nConfig from "./i18nConfig";
 
 export async function middleware(request: NextRequest) {
-  const i18nResult = i18nRouter(request, i18nConfig)
-  if (i18nResult) return i18nResult
+  const i18nResult = i18nRouter(request, i18nConfig);
+  if (i18nResult) return i18nResult;
+
+  // Skip session logic on login page
+  if (request.nextUrl.pathname === "/login") {
+    return NextResponse.next();
+  }
 
   try {
-    const { supabase, response } = createClient(request)
+    const { supabase, response } = createClient(request);
 
-    const session = await supabase.auth.getSession()
+    // Get the session
+    const session = await supabase.auth.getSession();
 
-    const redirectToChat = session && request.nextUrl.pathname === "/"
+    console.log("Middleware session:", session);
+
+    // Check if the user is anonymous
+    if (session?.data?.session?.user?.is_anonymous) {
+      console.log("Anonymous user detected");
+
+      const { data: homeWorkspace, error } = await supabase
+        .from("workspaces")
+        .select("*")
+        .eq("user_id", session.data.session?.user.id)
+        .eq("is_home", true)
+        .single();
+
+      if (error || !homeWorkspace) {
+        console.error("No workspace found for anonymous user", error);
+        // Redirect anonymous users to welcome page if no workspace
+        return NextResponse.redirect(new URL("/welcome", request.url));
+      }
+
+      // If workspace exists, redirect anonymous users to their home workspace
+      return NextResponse.redirect(
+        new URL(`/${homeWorkspace.id}/chat`, request.url)
+      );
+    }
+
+    // If the user is logged in and visiting the root page, redirect them to their workspace
+    const redirectToChat = session && request.nextUrl.pathname === "/";
 
     if (redirectToChat) {
       const { data: homeWorkspace, error } = await supabase
@@ -20,27 +52,30 @@ export async function middleware(request: NextRequest) {
         .select("*")
         .eq("user_id", session.data.session?.user.id)
         .eq("is_home", true)
-        .single()
+        .single();
 
       if (!homeWorkspace) {
-        throw new Error(error?.message)
+        console.error("No home workspace found for logged-in user", error);
+        throw new Error(error?.message || "No home workspace found");
       }
 
+      // Redirect logged-in users to their home workspace
       return NextResponse.redirect(
         new URL(`/${homeWorkspace.id}/chat`, request.url)
-      )
+      );
     }
 
-    return response
+    return response;
   } catch (e) {
+    console.error("Error in middleware:", e);
     return NextResponse.next({
       request: {
-        headers: request.headers
-      }
-    })
+        headers: request.headers,
+      },
+    });
   }
 }
 
 export const config = {
-  matcher: "/((?!api|static|.*\\..*|_next|auth).*)"
-}
+  matcher: "/((?!api|static|.*\\..*|_next|auth).*)",
+};

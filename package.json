@@ -60,7 +60,7 @@
     "@radix-ui/react-toggle-group": "^1.0.4",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@supabase/ssr": "^0.0.10",
-    "@supabase/supabase-js": "^2.38.4",
+    "@supabase/supabase-js": "^2.45.4",
     "@tabler/icons-react": "^2.40.0",
     "@vercel/analytics": "^1.1.1",
     "@vercel/edge-config": "^0.4.1",
@@ -115,7 +115,7 @@
     "eslint-config-next": "^14.0.2",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-tailwindcss": "^3.13.0",
-    "husky": "^8.0.3",
+    "husky": "^9.1.6",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.4.31",
@@ -125,5 +125,10 @@
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
     "typescript": "^5"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "C:\\Program Files\\nodejs\\npm.cmd run lint"
+    }
   }
 }

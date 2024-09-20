@@ -38,6 +38,9 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   // PROFILE STORE
   const [profile, setProfile] = useState<Tables<"profiles"> | null>(null)
 
+  // Anonymous state management
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(false)
+
   // ITEMS STORE
   const [assistants, setAssistants] = useState<Tables<"assistants">[]>([])
   const [collections, setCollections] = useState<Tables<"collections">[]>([])
@@ -158,6 +161,10 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
     if (session) {
       const user = session.user
 
+      // Check if the user is anonymous
+      setIsAnonymous(user?.is_anonymous ?? false)
+
+      // Fetch user profile
       const profile = await getProfileByUserId(user.id)
       setProfile(profile)
 
@@ -165,9 +172,11 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         return router.push("/setup")
       }
 
+      // Fetch workspaces for the user
       const workspaces = await getWorkspacesByUserId(user.id)
       setWorkspaces(workspaces)
 
+      // Fetch workspace images
       for (const workspace of workspaces) {
         let workspaceImageUrl = ""
 
@@ -186,7 +195,7 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
             {
               workspaceId: workspace.id,
               path: workspace.image_path,
-              base64: base64,
+              base64,
               url: workspaceImageUrl
             }
           ])
@@ -203,6 +212,8 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         // PROFILE STORE
         profile,
         setProfile,
+        isAnonymous,
+        setIsAnonymous,
 
         // ITEMS STORE
         assistants,

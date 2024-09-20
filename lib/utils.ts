@@ -23,3 +23,12 @@ export function getBase64FromDataURL(dataURL: string): string | null {
   const matches = dataURL.match(/^data:[A-Za-z-+\/]+;base64,(.*)$/)
   return matches ? matches[1] : null
 }
+
+// lib/utils.ts
+export function preserveQueryParams(
+  path: string,
+  searchParams: URLSearchParams
+): string {
+  const currentParams = searchParams.toString()
+  return `${path}${currentParams ? `?${currentParams}` : ""}`
+}

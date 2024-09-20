@@ -9,6 +9,7 @@ import { get } from "@vercel/edge-config"
 import { Metadata } from "next"
 import { cookies, headers } from "next/headers"
 import { redirect } from "next/navigation"
+import { GuestLoginButton } from "@/components/setup/GuestLoginButton"
 
 export const metadata: Metadata = {
   title: "Login"
@@ -161,6 +162,30 @@ export default async function Login({
     return redirect("/login?message=Check email to reset password")
   }
 
+  const handleGuestLogin = async () => {
+    try {
+      const response = await fetch("/api/guestLogin", {
+        method: "POST"
+      })
+
+      if (!response.ok) {
+        throw new Error("Guest login failed")
+      }
+
+      const data = await response.json()
+
+      // Redirect or handle session here
+      window.location.href = "/workspace" // Redirect to workspace
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error during guest login:", error.message)
+        window.location.href = `/login?message=${error.message}`
+      } else {
+        console.error("Unknown error during guest login", error)
+      }
+    }
+  }
+
   return (
     <div className="flex w-full flex-1 flex-col justify-center gap-2 px-8 sm:max-w-md">
       <form
@@ -199,6 +224,9 @@ export default async function Login({
         >
           Sign Up
         </SubmitButton>
+
+        {/* Use the client-side GuestLoginButton here */}
+        <GuestLoginButton />
 
         <div className="text-muted-foreground mt-1 flex justify-center text-sm">
           <span className="mr-1">Forgot your password?</span>

@@ -10,7 +10,7 @@ import { getMessageImageFromStorage } from "@/db/storage/message-images"
 import { convertBlobToBase64 } from "@/lib/blob-to-b64"
 import useHotkey from "@/lib/hooks/use-hotkey"
 import { LLMID, MessageImage } from "@/types"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { FC, useContext, useEffect, useState } from "react"
 import { ChatHelp } from "./chat-help"
 import { useScroll } from "./chat-hooks/use-scroll"
@@ -25,6 +25,8 @@ export const ChatUI: FC<ChatUIProps> = ({}) => {
   useHotkey("o", () => handleNewChat())
 
   const params = useParams()
+  const searchParams = useSearchParams()
+  const isWidgetView = searchParams.get("view") === "widget" // Check if widget view
 
   const {
     setChatMessages,
@@ -222,9 +224,12 @@ export const ChatUI: FC<ChatUIProps> = ({}) => {
         <ChatInput />
       </div>
 
-      <div className="absolute bottom-2 right-2 hidden md:block lg:bottom-4 lg:right-4">
-        <ChatHelp />
-      </div>
+      {/* Conditionally render ChatHelp only if not in widget view */}
+      {!isWidgetView && (
+        <div className="absolute bottom-2 right-2 hidden md:block lg:bottom-4 lg:right-4">
+          <ChatHelp />
+        </div>
+      )}
     </div>
   )
 }

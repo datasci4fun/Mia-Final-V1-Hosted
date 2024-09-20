@@ -17,6 +17,10 @@ interface ChatbotUIContext {
   profile: Tables<"profiles"> | null
   setProfile: Dispatch<SetStateAction<Tables<"profiles"> | null>>
 
+  // Anonymous state management
+  isAnonymous: boolean
+  setIsAnonymous: Dispatch<SetStateAction<boolean>>
+
   // ITEMS STORE
   assistants: Tables<"assistants">[]
   setAssistants: Dispatch<SetStateAction<Tables<"assistants">[]>>
@@ -143,6 +147,10 @@ export const ChatbotUIContext = createContext<ChatbotUIContext>({
   profile: null,
   setProfile: () => {},
 
+  // ANONYMOUS STATE MANAGEMENT
+  isAnonymous: false,
+  setIsAnonymous: () => {},
+  
   // ITEMS STORE
   assistants: [],
   setAssistants: () => {},

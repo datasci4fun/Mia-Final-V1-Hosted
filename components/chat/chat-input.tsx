@@ -20,12 +20,12 @@ import { useChatHandler } from "./chat-hooks/use-chat-handler"
 import { useChatHistoryHandler } from "./chat-hooks/use-chat-history"
 import { usePromptAndCommand } from "./chat-hooks/use-prompt-and-command"
 import { useSelectFileHandler } from "./chat-hooks/use-select-file-handler"
+import { useRouter, useSearchParams } from "next/navigation" // Import necessary hooks for navigation
 
 interface ChatInputProps {}
 
 export const ChatInput: FC<ChatInputProps> = ({}) => {
   const { t } = useTranslation()
-
   useHotkey("l", () => {
     handleFocusChatInput()
   })
@@ -74,6 +74,14 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
   } = useChatHistoryHandler()
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Function to preserve existing URL parameters like `?view=widget` during navigation
+  const preserveParams = () => {
+    const currentParams = new URLSearchParams(searchParams.toString())
+    return currentParams.toString() ? `?${currentParams.toString()}` : ""
+  }
 
   useEffect(() => {
     setTimeout(() => {
@@ -112,32 +120,15 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
     if (event.key === "ArrowUp" && event.shiftKey && event.ctrlKey) {
       event.preventDefault()
       setNewMessageContentToPreviousUserMessage()
+      // Add preserved parameters when navigating chat history
+      router.push(`/previous-chat${preserveParams()}`)
     }
 
     if (event.key === "ArrowDown" && event.shiftKey && event.ctrlKey) {
       event.preventDefault()
       setNewMessageContentToNextUserMessage()
-    }
-
-    //use shift+ctrl+up and shift+ctrl+down to navigate through chat history
-    if (event.key === "ArrowUp" && event.shiftKey && event.ctrlKey) {
-      event.preventDefault()
-      setNewMessageContentToPreviousUserMessage()
-    }
-
-    if (event.key === "ArrowDown" && event.shiftKey && event.ctrlKey) {
-      event.preventDefault()
-      setNewMessageContentToNextUserMessage()
-    }
-
-    if (
-      isAssistantPickerOpen &&
-      (event.key === "Tab" ||
-        event.key === "ArrowUp" ||
-        event.key === "ArrowDown")
-    ) {
-      event.preventDefault()
-      setFocusAssistant(!focusAssistant)
+      // Add preserved parameters when navigating chat history
+      router.push(`/next-chat${preserveParams()}`)
     }
   }
 
