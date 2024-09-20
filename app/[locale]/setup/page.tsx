@@ -62,42 +62,45 @@ export default function SetupPage() {
   const [openrouterAPIKey, setOpenrouterAPIKey] = useState("")
 
   useEffect(() => {
-    ;(async () => {
-      const session = (await supabase.auth.getSession()).data.session
+    (async () => {
+      const session = (await supabase.auth.getSession()).data.session;
 
       if (!session) {
-        return router.push("/login")
+        return router.push("/login");
       } else {
-        const user = session.user
+        const user = session.user;
 
-        const profile = await getProfileByUserId(user.id)
-        setProfile(profile)
-        setUsername(profile.username)
+        const profile = await getProfileByUserId(user.id);
+        setProfile(profile);
+        setUsername(profile.username);
 
         if (!profile.has_onboarded) {
-          setLoading(false)
+          setLoading(false);
         } else {
-          const data = await fetchHostedModels(profile)
+          const data = await fetchHostedModels(profile);
 
-          if (!data) return
+          if (!data) return;
 
-          setEnvKeyMap(data.envKeyMap)
-          setAvailableHostedModels(data.hostedModels)
+          setEnvKeyMap(data.envKeyMap);
+          setAvailableHostedModels(data.hostedModels);
 
           if (profile["openrouter_api_key"] || data.envKeyMap["openrouter"]) {
-            const openRouterModels = await fetchOpenRouterModels()
-            if (!openRouterModels) return
-            setAvailableOpenRouterModels(openRouterModels)
+            const openRouterModels = await fetchOpenRouterModels();
+            if (!openRouterModels) return;
+            setAvailableOpenRouterModels(openRouterModels);
           }
 
-          const homeWorkspaceId = await getHomeWorkspaceByUserId(
-            session.user.id
-          )
-          return router.push(`/${homeWorkspaceId}/chat`)
+          const homeWorkspace = await getHomeWorkspaceByUserId(session.user.id); // Fetch the entire workspace object
+          
+          if (homeWorkspace && homeWorkspace.id) {
+            return router.push(`/${homeWorkspace.id}/chat`);
+          } else {
+            throw new Error("Home workspace not found or invalid.");
+          }
         }
       }
-    })()
-  }, [])
+    })();
+  }, []);
 
   const handleShouldProceed = (proceed: boolean) => {
     if (proceed) {

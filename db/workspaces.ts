@@ -1,20 +1,21 @@
 import { supabase } from "@/lib/supabase/browser-client"
 import { TablesInsert, TablesUpdate } from "@/supabase/types"
 
+// Change this function to return the entire workspace object, not just the ID.
 export const getHomeWorkspaceByUserId = async (userId: string) => {
   const { data: homeWorkspace, error } = await supabase
     .from("workspaces")
     .select("*")
     .eq("user_id", userId)
     .eq("is_home", true)
-    .single()
+    .single();
 
   if (!homeWorkspace) {
-    throw new Error(error.message)
+    throw new Error(error?.message || "Home workspace not found.");
   }
 
-  return homeWorkspace.id
-}
+  return homeWorkspace; // Return the entire workspace object.
+};
 
 export const getWorkspaceById = async (workspaceId: string) => {
   const { data: workspace, error } = await supabase

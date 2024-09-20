@@ -23,27 +23,18 @@ export async function POST(request: Request) {
           return cookieValue;
         },
         set(name: string, value: string) {
-          // Set cookies with SameSite=None and Secure attributes for cross-origin compatibility on mobile
           cookieStore.set(name, value, {
             path: "/",
-            sameSite: "none", // Ensure the cookie is sent in cross-origin requests
-            secure: true,     // Cookies are only sent over HTTPS
-            httpOnly: true,   // Cookie is not accessible via JavaScript (for security)
-            domain: "mia-final-v1-hosted.vercel.app", // Set domain for cross-origin compatibility
+            sameSite: "none",
+            secure: true,
           });
-          console.log(`Setting cookie '${name}' to value '${value}' with SameSite=None, Secure, HttpOnly, and domain settings.`); // Log cookie setting
+          console.log(
+            `Setting cookie '${name}' to value '${value}' with SameSite=None and Secure attributes.`
+          ); // Log cookie setting
         },
       },
     }
   );
-
-  // CORS setup - add headers to ensure requests from the mobile widget are allowed
-  const responseHeaders = {
-    "Access-Control-Allow-Origin": "https://mia-final-v1-hosted.vercel.app",
-    "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  };
 
   // Get the session to check if the user is already anonymous
   const { data: sessionData } = await supabase.auth.getSession();
@@ -62,7 +53,7 @@ export async function POST(request: Request) {
       console.error("Sign in error:", signInError);
       return NextResponse.json(
         { error: "Anonymous login failed" },
-        { status: 500, headers: responseHeaders }
+        { status: 500 }
       );
     }
 
@@ -81,16 +72,29 @@ export async function POST(request: Request) {
     const viewParam = requestUrl.searchParams.get("view") || ""; // Extract the 'view' parameter if it exists
     console.log("View parameter:", viewParam);
 
-    // Check if the user already has a home workspace
+    // Fetch the user's home workspace
     const existingHomeWorkspace = await getHomeWorkspaceByUserId(userId);
     console.log("Existing home workspace:", existingHomeWorkspace);
 
+    // Check if multiple rows were returned
+    if (Array.isArray(existingHomeWorkspace) && existingHomeWorkspace.length !== 1) {
+      console.error(
+        "Error: Multiple or no home workspaces found for user. Please check database constraints."
+      );
+      return NextResponse.json(
+        { error: "Multiple or no home workspaces found." },
+        { status: 500 }
+      );
+    }
+
     if (existingHomeWorkspace) {
       // Redirect to the existing workspace with the view parameter if it exists
-      const workspaceUrl = `${requestUrl.origin}/${existingHomeWorkspace}/chat${viewParam ? `?view=${viewParam}` : ""}`;
+      const workspaceUrl = `${requestUrl.origin}/${existingHomeWorkspace.id}/chat${
+        viewParam ? `?view=${viewParam}` : ""
+      }`;
       console.log("Redirecting to existing workspace URL:", workspaceUrl);
 
-      return NextResponse.json({ session, workspaceUrl }, { headers: responseHeaders });
+      return NextResponse.json({ session, workspaceUrl });
     }
 
     // If no home workspace exists, create a new one
@@ -116,17 +120,19 @@ export async function POST(request: Request) {
     console.log("Workspace created successfully:", createdWorkspace);
 
     // Build the redirect URL with the preserved view parameter
-    const workspaceUrl = `${requestUrl.origin}/${createdWorkspace.id}/chat${viewParam ? `?view=${viewParam}` : ""}`;
+    const workspaceUrl = `${requestUrl.origin}/${createdWorkspace.id}/chat${
+      viewParam ? `?view=${viewParam}` : ""
+    }`;
     console.log("Redirecting to new workspace URL:", workspaceUrl);
-    return NextResponse.json({ session, workspaceUrl }, { headers: responseHeaders });
+    return NextResponse.json({ session, workspaceUrl });
   } catch (error) {
     console.error("Error creating or fetching workspace:", error);
     if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500, headers: responseHeaders });
+      return NextResponse.json({ error: error.message }, { status: 500 });
     } else {
       return NextResponse.json(
         { error: "An unknown error occurred" },
-        { status: 500, headers: responseHeaders }
+        { status: 500 }
       );
     }
   }
