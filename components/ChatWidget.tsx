@@ -1,34 +1,34 @@
-import React, { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase/browser-client" // Your Supabase client
+import React, { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase/browser-client"; // Your Supabase client
 
 export const ChatWidget = () => {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const checkOrLogin = async () => {
       try {
         const {
-          data: { session }
-        } = await supabase.auth.getSession()
+          data: { session },
+        } = await supabase.auth.getSession();
 
         if (!session) {
-          const { error } = await supabase.auth.signInAnonymously()
+          const { error } = await supabase.auth.signInAnonymously();
           if (error) {
-            console.error("Anonymous login failed:", error.message)
+            console.error("Anonymous login failed:", error.message);
             // Handle login error (e.g., retry or display an error message)
           }
         }
       } catch (error) {
-        console.error("Error during session check or login:", error)
+        console.error("Error during session check or login:", error);
       }
-    }
+    };
 
-    checkOrLogin()
-  }, [])
+    checkOrLogin();
+  }, []);
 
   const toggleChat = () => {
-    setIsOpen(!isOpen)
-  }
+    setIsOpen(!isOpen);
+  };
 
   return (
     <div style={{ position: "fixed", bottom: "20px", right: "20px" }}>
@@ -38,7 +38,7 @@ export const ChatWidget = () => {
           backgroundColor: "#007bff",
           color: "white",
           padding: "10px",
-          borderRadius: "50%"
+          borderRadius: "50%",
         }}
         aria-label="Toggle Chat"
       >
@@ -57,7 +57,7 @@ export const ChatWidget = () => {
             position: "fixed",
             bottom: "80px",
             right: "20px",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
           }}
         >
           <iframe
@@ -69,5 +69,14 @@ export const ChatWidget = () => {
         </div>
       )}
     </div>
-  )
+  );
+};
+
+declare global {
+  interface Window {
+    ChatWidget: React.ComponentType<any>;
+  }
 }
+
+// Attach the component to the window object
+window.ChatWidget = ChatWidget;
