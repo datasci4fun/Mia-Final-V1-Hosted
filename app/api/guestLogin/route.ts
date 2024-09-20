@@ -1,16 +1,16 @@
-import { createServerClient } from "@supabase/ssr"
-import { NextResponse } from "next/server"
-import { Database } from "@/supabase/types"
-import { cookies } from "next/headers"
-import { v4 as uuidv4 } from "uuid"
-import { createWorkspace, getHomeWorkspaceByUserId } from "@/db/workspaces"
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse } from "next/server";
+import { Database } from "@/supabase/types";
+import { cookies } from "next/headers";
+import { v4 as uuidv4 } from "uuid";
+import { createWorkspace, getHomeWorkspaceByUserId } from "@/db/workspaces";
 
 export async function POST(request: Request) {
-  const cookieStore = cookies()
+  const cookieStore = cookies();
 
   // Log the individual cookies that are available
-  const sessionCookie = cookieStore.get("supabase-auth-token")?.value
-  console.log("Session cookie value:", sessionCookie)
+  const sessionCookie = cookieStore.get("supabase-auth-token")?.value;
+  console.log("Session cookie value:", sessionCookie);
 
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,63 +18,68 @@ export async function POST(request: Request) {
     {
       cookies: {
         get(name: string) {
-          const cookieValue = cookieStore.get(name)?.value
-          console.log(`Cookie value for '${name}':`, cookieValue) // Log cookie retrieval
-          return cookieValue
+          const cookieValue = cookieStore.get(name)?.value;
+          console.log(`Cookie value for '${name}':`, cookieValue); // Log cookie retrieval
+          return cookieValue;
         },
         set(name: string, value: string) {
-          cookieStore.set(name, value, { path: "/" })
-          console.log(`Setting cookie '${name}' to value '${value}'`) // Log cookie setting
-        }
-      }
+          // Set cookies with SameSite=None and Secure attributes
+          cookieStore.set(name, value, {
+            path: "/",
+            sameSite: "none", // Allow cross-site access
+            secure: true,     // Ensure cookies are only sent over HTTPS
+          });
+          console.log(`Setting cookie '${name}' to value '${value}' with SameSite=None and Secure attributes.`); // Log cookie setting
+        },
+      },
     }
-  )
+  );
 
   // Get the session to check if the user is already anonymous
-  const { data: sessionData } = await supabase.auth.getSession()
-  console.log("Session data:", sessionData) // Log session data
+  const { data: sessionData } = await supabase.auth.getSession();
+  console.log("Session data:", sessionData); // Log session data
 
-  let userId
-  let session = sessionData?.session
+  let userId;
+  let session = sessionData?.session;
 
   if (!session || !session.user?.is_anonymous) {
     console.log(
       "No existing session or not anonymous, signing in anonymously..."
-    )
+    );
 
     // If no session or the user is not anonymous, create a new anonymous session
     const { data: signInData, error: signInError } =
-      await supabase.auth.signInAnonymously()
+      await supabase.auth.signInAnonymously();
 
     if (!signInData || !signInData.user) {
-      console.error("Sign in error:", signInError)
+      console.error("Sign in error:", signInError);
       return NextResponse.json(
         { error: "Anonymous login failed" },
         { status: 500 }
-      )
+      );
     }
 
-    userId = signInData.user.id
-    session = signInData.session
-    console.log("New anonymous session created:", session) // Log new session creation
+    userId = signInData.user.id;
+    session = signInData.session;
+    console.log("New anonymous session created:", session); // Log new session creation
   } else {
     // Use the existing anonymous session
-    userId = session.user.id
-    console.log("Using existing anonymous session for user:", userId)
+    userId = session.user.id;
+    console.log("Using existing anonymous session for user:", userId);
   }
 
   try {
     // Check if the user already has a home workspace
-    const existingHomeWorkspace = await getHomeWorkspaceByUserId(userId)
-    console.log("Existing home workspace:", existingHomeWorkspace)
+    const existingHomeWorkspace = await getHomeWorkspaceByUserId(userId);
+    console.log("Existing home workspace:", existingHomeWorkspace);
 
     if (existingHomeWorkspace) {
       // Redirect to the existing workspace
-      const requestUrl = new URL(request.url)
-      const workspaceUrl = `${requestUrl.origin}/${existingHomeWorkspace}/chat`
-      console.log("Redirecting to existing workspace URL:", workspaceUrl)
+      const requestUrl = new URL(request.url);
+      const workspaceUrl = `${requestUrl.origin}/${existingHomeWorkspace}/chat`;
+      console.log("Redirecting to existing workspace URL:", workspaceUrl);
 
-      return NextResponse.json({ session, workspaceUrl })
+      return NextResponse.json({ session, workspaceUrl });
     }
 
     // If no home workspace exists, create a new one
@@ -90,29 +95,29 @@ export async function POST(request: Request) {
       embeddings_provider: "openai",
       include_profile_context: false,
       include_workspace_instructions: true,
-      instructions: "Default instructions for guest workspace"
-    }
+      instructions: "Default instructions for guest workspace",
+    };
 
-    console.log("Creating new workspace with data:", workspaceData) // Log workspace creation
+    console.log("Creating new workspace with data:", workspaceData); // Log workspace creation
 
     // Create the new workspace
-    const createdWorkspace = await createWorkspace(workspaceData)
-    console.log("Workspace created successfully:", createdWorkspace)
+    const createdWorkspace = await createWorkspace(workspaceData);
+    console.log("Workspace created successfully:", createdWorkspace);
 
-    const requestUrl = new URL(request.url)
-    const workspaceUrl = `${requestUrl.origin}/${createdWorkspace.id}/chat`
+    const requestUrl = new URL(request.url);
+    const workspaceUrl = `${requestUrl.origin}/${createdWorkspace.id}/chat`;
 
-    console.log("Redirecting to new workspace URL:", workspaceUrl)
-    return NextResponse.json({ session, workspaceUrl })
+    console.log("Redirecting to new workspace URL:", workspaceUrl);
+    return NextResponse.json({ session, workspaceUrl });
   } catch (error) {
-    console.error("Error creating or fetching workspace:", error)
+    console.error("Error creating or fetching workspace:", error);
     if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: error.message }, { status: 500 });
     } else {
       return NextResponse.json(
         { error: "An unknown error occurred" },
         { status: 500 }
-      )
+      );
     }
   }
 }
