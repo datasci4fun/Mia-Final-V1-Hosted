@@ -120,7 +120,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
 
             {/* Radial Menu Sections */}
             <RadialMenuSection
-              icon={<IconMessageCircle size={36} />}
+              icon={<IconMessageCircle size={24} />}
               label="Chats"
               position={{
                 top: "10%",
@@ -133,7 +133,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             />
 
             <RadialMenuSection
-              icon={<IconFile size={36} />}
+              icon={<IconFile size={24} />}
               label="Files"
               position={{ top: "50%", right: "10%" }}
               onHover={() => handleSectionHover("files")}
@@ -142,7 +142,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             />
 
             <RadialMenuSection
-              icon={<IconDatabase size={36} />}
+              icon={<IconDatabase size={24} />}
               label="Presets"
               position={{ top: "20%", left: "20%" }}
               onHover={() => handleSectionHover("presets")}
@@ -151,7 +151,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             />
 
             <RadialMenuSection
-              icon={<IconTag size={36} />}
+              icon={<IconTag size={24} />}
               label="Prompts"
               position={{ top: "20%", right: "20%" }}
               onHover={() => handleSectionHover("prompts")}
@@ -160,7 +160,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             />
 
             <RadialMenuSection
-              icon={<IconFolder size={36} />}
+              icon={<IconFolder size={24} />}
               label="Collections"
               position={{ bottom: "20%", left: "20%" }}
               onHover={() => handleSectionHover("collections")}
@@ -169,7 +169,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             />
 
             <RadialMenuSection
-              icon={<IconUser size={36} />}
+              icon={<IconUser size={24} />}
               label="Assistants"
               position={{ bottom: "20%", right: "20%" }}
               onHover={() => handleSectionHover("assistants")}
@@ -178,7 +178,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             />
 
             <RadialMenuSection
-              icon={<IconTool size={36} />}
+              icon={<IconTool size={24} />}
               label="Tools"
               position={{
                 bottom: "10%",
@@ -191,7 +191,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             />
 
             <RadialMenuSection
-              icon={<IconSettings size={36} />}
+              icon={<IconSettings size={24} />}
               label="Models"
               position={{ top: "50%", left: "10%" }}
               onHover={() => handleSectionHover("models")}
