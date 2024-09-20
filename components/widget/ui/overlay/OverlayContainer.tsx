@@ -34,7 +34,7 @@ export const OverlayContainer: FC<OverlayContainerProps> = ({
         isVisible ? "fade-in" : "fade-out"
       }`}
     >
-      <div className="h-[75vh] w-[90%] max-w-[400px] rounded bg-white p-4 shadow-lg">
+      <div className="h-[75vh] w-[90%] max-w-[400px] rounded p-4 shadow-lg">
         <OverlayHeader type={type} onClose={handleClose} />
         <OverlayContent type={type} />
       </div>

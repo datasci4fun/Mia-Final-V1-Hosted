@@ -135,7 +135,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             <RadialMenuSection
               icon={<IconFile size={24} />}
               label="Files"
-              position={{ top: "50%", right: "10%" }}
+              position={{ top: "45%", right: "10%" }}
               onHover={() => handleSectionHover("files")}
               isHighlighted={highlightedSection === "files"}
               onClick={() => handleOverlayToggle("files")}
@@ -153,7 +153,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             <RadialMenuSection
               icon={<IconTag size={24} />}
               label="Prompts"
-              position={{ bottom: "10%", left: "50%" }}
+              position={{ bottom: "10%", left: "45%" }}
               onHover={() => handleSectionHover("prompts")}
               isHighlighted={highlightedSection === "prompts"}
               onClick={() => handleOverlayToggle("prompts")}
@@ -181,8 +181,8 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
               icon={<IconTool size={24} />}
               label="Tools"
               position={{
-                top: "50%",
-                left: "10%",
+                top: "45%",
+                left: "13%",
                 transform: "translateX(-50%)"
               }}
               onHover={() => handleSectionHover("tools")}
