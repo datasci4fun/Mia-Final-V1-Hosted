@@ -1,5 +1,5 @@
 (function () {
-  // Load React and ReactDOM from CDN
+  // Helper function to load external scripts
   const loadScript = (src, callback) => {
     const script = document.createElement("script");
     script.src = src;
@@ -9,63 +9,81 @@
     document.head.appendChild(script);
   };
 
-  // Load React and ReactDOM before initializing the widget
-  loadScript("https://unpkg.com/react@18/umd/react.production.min.js", () => {
-    console.log("React loaded successfully.");
-    loadScript(
-      "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js",
-      initWidget
-    );
-  });
-
-  function initWidget() {
-    console.log("ReactDOM loaded successfully, initializing widget.");
-    const chatDiv = document.createElement("div");
-    chatDiv.id = "chat-widget-container";
-    document.body.appendChild(chatDiv);
-
-    // Fetch the build-manifest.json from the correct hosted location
-    const manifestPath =
-      "https://mia-final-v1-hosted.vercel.app/build-manifest.json";
-
-    fetch(manifestPath)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch build manifest.");
+  // Ensure React and ReactDOM are loaded before initializing the widget
+  const ensureReactLoaded = (callback) => {
+    if (window.React && window.ReactDOM) {
+      callback();
+    } else {
+      loadScript(
+        "https://unpkg.com/react@18/umd/react.production.min.js",
+        () => {
+          console.log("React loaded successfully.");
+          loadScript(
+            "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js",
+            callback
+          );
         }
-        return response.json();
-      })
-      .then((manifest) => {
-        console.log("Manifest fetched successfully:", manifest);
-        const widgetChunkPaths = findWidgetChunks(manifest);
+      );
+    }
+  };
 
-        if (!widgetChunkPaths.length) {
-          console.error("No relevant ChatWidget chunks found in the manifest.");
+  // Define the ChatWidget global object with an init method
+  window.ChatWidget = {
+    init: (selector) => {
+      ensureReactLoaded(() => {
+        console.log("ReactDOM loaded successfully, initializing widget.");
+        const container = document.querySelector(selector);
+        if (!container) {
+          console.error("Container not found for the widget.");
           return;
         }
 
-        widgetChunkPaths.forEach((chunkPath) => {
-          // Correct the chunk path to avoid the double 'static/static' issue
-          const correctedChunkPath = chunkPath.replace(
-            /^static\/static\//,
-            "static/"
-          );
-          loadChunk(
-            `https://mia-final-v1-hosted.vercel.app/_next/${correctedChunkPath}`,
-            chatDiv
-          );
-        });
-      })
-      .catch((error) => {
-        console.error(
-          "Error fetching the manifest or loading the ChatWidget chunk:",
-          error
-        );
-      });
-  }
+        // Fetch the build manifest from the correct hosted location
+        const manifestPath =
+          "https://mia-final-v1-hosted.vercel.app/build-manifest.json";
 
+        fetch(manifestPath)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Failed to fetch build manifest.");
+            }
+            return response.json();
+          })
+          .then((manifest) => {
+            console.log("Manifest fetched successfully:", manifest);
+            const widgetChunkPaths = findWidgetChunks(manifest);
+
+            if (!widgetChunkPaths.length) {
+              console.error(
+                "No relevant ChatWidget chunks found in the manifest."
+              );
+              return;
+            }
+
+            widgetChunkPaths.forEach((chunkPath) => {
+              // Correct the chunk path to avoid the double 'static/static' issue
+              const correctedChunkPath = chunkPath.replace(
+                /^static\/static\//,
+                "static/"
+              );
+              loadChunk(
+                `https://mia-final-v1-hosted.vercel.app/_next/${correctedChunkPath}`,
+                container
+              );
+            });
+          })
+          .catch((error) => {
+            console.error(
+              "Error fetching the manifest or loading the ChatWidget chunk:",
+              error
+            );
+          });
+      });
+    },
+  };
+
+  // Helper function to find relevant chunks from the manifest
   function findWidgetChunks(manifest) {
-    // Extract the relevant chunks from the manifest
     const rootMainFiles = manifest.rootMainFiles || [];
     const pageChunks = manifest.pages
       ? manifest.pages["/[locale]/chat/page"] || []
@@ -77,6 +95,7 @@
     return relevantChunks;
   }
 
+  // Load a specific chunk and render the ChatWidget
   function loadChunk(chunkPath, container) {
     const script = document.createElement("script");
     script.src = chunkPath;
@@ -86,9 +105,9 @@
       console.log(`Loaded script: ${chunkPath}`);
       const { createElement } = window.React;
       const { render } = window.ReactDOM;
-      const ChatWidget = window.ChatWidget;
+      const ChatWidgetComponent = window.ChatWidget;
 
-      if (!ChatWidget) {
+      if (!ChatWidgetComponent) {
         console.error("ChatWidget component not found on the window.");
         return;
       }
@@ -98,7 +117,7 @@
       widgetRoot.id = "chat-widget-root";
       container.appendChild(widgetRoot);
 
-      render(createElement(ChatWidget), widgetRoot);
+      render(createElement(ChatWidgetComponent), widgetRoot);
     };
 
     script.onerror = () => {

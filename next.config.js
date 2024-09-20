@@ -1,10 +1,11 @@
+// Updated Webpack configuration to include ChatWidget component explicitly
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
   enabled: process.env.ANALYZE === "true",
 });
 
 const withPWA = require("next-pwa")({
   dest: "public",
-  disable: process.env.NODE_ENV === "development", // Disable PWA in development mode
+  disable: process.env.NODE_ENV === "development",
 });
 
 const fs = require("fs");
@@ -31,11 +32,11 @@ module.exports = withBundleAnalyzer(
     },
     experimental: {
       serverComponentsExternalPackages: ["sharp", "onnxruntime-node"],
-      swcMinify: true, // Ensure SWC minification is enabled for faster builds
-      appDir: true, // Enable app directory features
+      swcMinify: true,
+      appDir: true,
     },
     webpack: (config, { isServer }) => {
-      // Resolve the SWC vs. Babel conflict
+      // Resolve conflicts and ensure proper configuration
       if (!isServer) {
         config.resolve.fallback = {
           ...config.resolve.fallback,
@@ -45,20 +46,27 @@ module.exports = withBundleAnalyzer(
         };
       }
 
-      // Modify the Webpack entry point to include ChatWidget component
+      // Ensure the ChatWidget component is part of the entry points
       const originalEntry = config.entry;
       config.entry = async () => {
         const entries = await originalEntry();
 
-        // Add the ChatWidget component to the entries
-        if (entries['main.js'] && !entries['main.js'].includes(path.resolve(__dirname, 'components/ChatWidget.tsx'))) {
-          entries['main.js'].push(path.resolve(__dirname, 'components/ChatWidget.tsx'));
+        // Include the ChatWidget component
+        if (
+          entries["main.js"] &&
+          !entries["main.js"].includes(
+            path.resolve(__dirname, "components/ChatWidget.tsx")
+          )
+        ) {
+          entries["main.js"].push(
+            path.resolve(__dirname, "components/ChatWidget.tsx")
+          );
         }
 
         return entries;
       };
 
-      // Copy the build manifest to the public directory after each build
+      // Copy build manifest to public directory
       config.plugins.push({
         apply: (compiler) => {
           compiler.hooks.afterEmit.tap("CopyBuildManifestPlugin", () => {
@@ -88,7 +96,7 @@ module.exports = withBundleAnalyzer(
       return config;
     },
     generateBuildId: async () => {
-      // Generate a custom build ID using the current timestamp
+      // Custom build ID
       return `custom-build-${new Date().getTime()}`;
     },
   })

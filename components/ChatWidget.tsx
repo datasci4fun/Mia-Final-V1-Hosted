@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/browser-client"; // Your Supabase client
+import { supabase } from "@/lib/supabase/browser-client";
 
 export const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,7 +15,6 @@ export const ChatWidget = () => {
           const { error } = await supabase.auth.signInAnonymously();
           if (error) {
             console.error("Anonymous login failed:", error.message);
-            // Handle login error (e.g., retry or display an error message)
           }
         }
       } catch (error) {
@@ -72,11 +71,11 @@ export const ChatWidget = () => {
   );
 };
 
+// Attach the component to the window object
 declare global {
   interface Window {
-    ChatWidget: React.ComponentType<any>;
+    ChatWidget: typeof ChatWidget;
   }
 }
 
-// Attach the component to the window object
 window.ChatWidget = ChatWidget;
