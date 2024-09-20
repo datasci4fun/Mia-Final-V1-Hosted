@@ -19,13 +19,13 @@
   
       // Step 4: Dynamically load the main Next.js bundle
       var nextScript = document.createElement('script');
-      nextScript.src = 'https://your-nextjs-app.com/_next/static/chunks/main.js'; // Correct path to your Next.js bundle
+      nextScript.src = 'https://https://mia-final-v1-hosted.vercel.app/_next/static/chunks/main.js'; // Correct path to your Next.js bundle
       nextScript.async = true;
   
       // Step 5: When Next.js bundle is loaded, initialize the ChatWidget
       nextScript.onload = function () {
         // Fetch the ChatWidget component dynamically
-        import('https://your-nextjs-app.com/_next/static/chunks/ChatWidget.js')
+        import('https://mia-final-v1-hosted.vercel.app/_next/static/chunks/ChatWidget.js')
           .then((module) => {
             const { createElement } = window.React;
             const { render } = window.ReactDOM;
