@@ -1,20 +1,19 @@
 import React from 'react';
-import { useRouter } from 'next/router';
 
 // Button component to ensure ?view=widget in the URL
 const EnsureViewWidgetButton: React.FC = () => {
-  const router = useRouter();
-
-  // Function to update the URL with ?view=widget
+  // Function to add or maintain the ?view=widget parameter in the URL
   const ensureViewParameter = () => {
-    const url = new URL(window.location.href);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
 
-    // Check if the 'view' parameter exists, if not, set it to 'widget'
-    if (url.searchParams.get('view') !== 'widget') {
-      url.searchParams.set('view', 'widget');
+      // Check if the 'view' parameter exists, if not, set it to 'widget'
+      if (url.searchParams.get('view') !== 'widget') {
+        url.searchParams.set('view', 'widget');
 
-      // Update the browser's URL without reloading the page
-      window.history.replaceState(null, '', url.toString());
+        // Update the browser's URL without reloading the page
+        window.history.replaceState(null, '', url.toString());
+      }
     }
   };
 
