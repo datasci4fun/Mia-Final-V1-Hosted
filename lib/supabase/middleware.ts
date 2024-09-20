@@ -1,4 +1,5 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr"
+import { Turret_Road } from "next/font/google"
 import { NextResponse, type NextRequest } from "next/server"
 
 export const createClient = (request: NextRequest) => {
@@ -22,7 +23,9 @@ export const createClient = (request: NextRequest) => {
           request.cookies.set({
             name,
             value,
-            ...options
+            ...options,
+            sameSite: "None",
+            secure: true,
           })
           response = NextResponse.next({
             request: {
