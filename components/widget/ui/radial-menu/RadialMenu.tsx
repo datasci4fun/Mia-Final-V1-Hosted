@@ -140,7 +140,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
               isHighlighted={highlightedSection === "files"}
               onClick={() => handleOverlayToggle("files")}
             />
-
+{/*
             <RadialMenuSection
               icon={<IconDatabase size={24} />}
               label="Presets"
@@ -149,7 +149,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
               isHighlighted={highlightedSection === "presets"}
               onClick={() => handleOverlayToggle("presets")}
             />
-
+*/}
             <RadialMenuSection
               icon={<IconTag size={24} />}
               label="Prompts"
@@ -158,7 +158,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
               isHighlighted={highlightedSection === "prompts"}
               onClick={() => handleOverlayToggle("prompts")}
             />
-
+{/*
             <RadialMenuSection
               icon={<IconFolder size={24} />}
               label="Collections"
@@ -176,7 +176,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
               isHighlighted={highlightedSection === "assistants"}
               onClick={() => handleOverlayToggle("assistants")}
             />
-
+*/}
             <RadialMenuSection
               icon={<IconTool size={24} />}
               label="Tools"
@@ -190,6 +190,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
               onClick={() => handleOverlayToggle("tools")}
             />
 
+            {/*
             <RadialMenuSection
               icon={<IconSettings size={24} />}
               label="Models"
@@ -198,17 +199,19 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
               isHighlighted={highlightedSection === "models"}
               onClick={() => handleOverlayToggle("models")}
             />
+            */}
 
-            {/* QuickSettings positioned at the top-left */}
+
+            {/* QuickSettings positioned at the top-left 
             <div className="absolute left-2 top-2">
               <QuickSettings />
             </div>
 
-            {/* ChatSettings positioned at the top-right */}
+            {/* ChatSettings positioned at the top-right 
             <div className="absolute right-2 top-2">
               <ChatSettings />
             </div>
-
+*/}
             {/* Profile Settings positioned in the bottom left corner */}
             <div
               className="absolute bottom-4 left-4 flex items-center justify-center"
