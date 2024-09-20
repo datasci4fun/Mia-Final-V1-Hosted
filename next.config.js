@@ -1,4 +1,3 @@
-const fs = require('fs');
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
   enabled: process.env.ANALYZE === "true",
 });
@@ -32,22 +31,8 @@ module.exports = withBundleAnalyzer(
       swcMinify: true, // Ensure SWC minification is enabled for faster builds
       appDir: true, // Enable app directory features
     },
-    webpack: (config, { isServer, buildId }) => {
-      // Ensure the consistent use of BUILD_ID for chunk filenames
-      const customBuildId = fs.readFileSync('.next/BUILD_ID', 'utf8').trim();
-
-      // Replace [chunkhash] with the consistent buildId read from the BUILD_ID file
-      config.output.filename = config.output.filename.replace(
-        '[chunkhash]',
-        customBuildId
-      );
-
-      config.output.chunkFilename = config.output.chunkFilename.replace(
-        '[chunkhash]',
-        customBuildId
-      );
-
-      // Resolve the SWC vs. Babel conflict and server-side fallbacks
+    webpack: (config, { isServer }) => {
+      // Resolve the SWC vs. Babel conflict
       if (!isServer) {
         config.resolve.fallback = {
           ...config.resolve.fallback,
@@ -59,9 +44,8 @@ module.exports = withBundleAnalyzer(
       return config;
     },
     generateBuildId: async () => {
-      // Use the contents of the BUILD_ID file or provide a default static ID
-      const buildId = fs.readFileSync('.next/BUILD_ID', 'utf8').trim();
-      return buildId || 'default-build-id';
+      // Generate a custom build ID using the current timestamp
+      return `custom-build-${new Date().getTime()}`;
     },
   })
 );
