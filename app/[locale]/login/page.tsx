@@ -15,11 +15,14 @@ export const metadata: Metadata = {
   title: "Login",
 };
 
-export default async function Login({ searchParams }: { searchParams: { message: string } }) {
+export default async function Login({
+  searchParams,
+}: {
+  searchParams: { message: string };
+}) {
   const cookieStore = cookies();
-  console.log("Initializing Supabase client...");
+  console.log("Initializing Supabase client with cookie store...");
 
-  // Create the Supabase client with detailed logging
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -27,16 +30,16 @@ export default async function Login({ searchParams }: { searchParams: { message:
       cookies: {
         get(name: string) {
           const cookieValue = cookieStore.get(name)?.value;
-          console.log(`Cookie value retrieved for '${name}':`, cookieValue);
+          console.log(`Retrieved cookie value for '${name}':`, cookieValue);
           return cookieValue;
         },
       },
     }
   );
 
-  // Attempt to retrieve the current session
+  console.log("Fetching current session...");
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-  console.log("Session data fetched:", sessionData);
+  console.log("Session data:", sessionData);
 
   if (sessionError) {
     console.error("Error fetching session data:", sessionError);
@@ -45,20 +48,19 @@ export default async function Login({ searchParams }: { searchParams: { message:
   const session = sessionData?.session;
 
   if (session) {
-    console.log("Session exists, fetching home workspace for user:", session.user.id);
-
-    const { data: homeWorkspace, error: workspaceError } = await supabase
+    console.log("Session exists for user:", session.user.id);
+    const { data: homeWorkspace, error } = await supabase
       .from("workspaces")
       .select("*")
       .eq("user_id", session.user.id)
       .eq("is_home", true)
       .single();
 
-    console.log("Home workspace data:", homeWorkspace);
+    console.log("Home workspace fetched:", homeWorkspace);
 
-    if (workspaceError) {
-      console.error("Error fetching home workspace:", workspaceError.message);
-      throw new Error(workspaceError.message);
+    if (error) {
+      console.error("Error fetching home workspace:", error.message);
+      throw new Error(error.message);
     }
 
     if (!homeWorkspace) {
@@ -69,29 +71,30 @@ export default async function Login({ searchParams }: { searchParams: { message:
     console.log("Redirecting to home workspace:", homeWorkspace.id);
     return redirect(`/${homeWorkspace.id}/chat`);
   } else {
-    console.log("No session found, proceeding to login form...");
+    console.log("No session found, rendering login form...");
   }
 
   const signIn = async (formData: FormData) => {
+    "use server";
+    console.log("Attempting sign in with provided credentials...");
+
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
 
-    console.log("Attempting to sign in with email:", email);
-
+    console.log("Signing in user:", email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
-      console.error("Sign-in error:", error.message);
+      console.error("Error during sign in:", error.message);
       return redirect(`/login?message=${error.message}`);
     }
 
-    console.log("Sign-in successful, fetching home workspace for user:", data.user.id);
-
+    console.log("Sign in successful, fetching home workspace for user:", data.user.id);
     const { data: homeWorkspace, error: homeWorkspaceError } = await supabase
       .from("workspaces")
       .select("*")
@@ -99,16 +102,14 @@ export default async function Login({ searchParams }: { searchParams: { message:
       .eq("is_home", true)
       .single();
 
-    console.log("Home workspace data:", homeWorkspace);
-
     if (homeWorkspaceError) {
       console.error("Error fetching home workspace:", homeWorkspaceError.message);
       throw new Error(homeWorkspaceError.message || "An unexpected error occurred");
     }
 
     if (!homeWorkspace) {
-      console.error("No home workspace found for user:", data.user.id);
-      throw new Error("Home workspace not found after sign-in");
+      console.error("No home workspace found after sign in for user:", data.user.id);
+      throw new Error("Home workspace not found");
     }
 
     console.log("Redirecting to home workspace:", homeWorkspace.id);
@@ -116,15 +117,12 @@ export default async function Login({ searchParams }: { searchParams: { message:
   };
 
   const getEnvVarOrEdgeConfigValue = async (name: string) => {
+    "use server";
     console.log(`Fetching value for ${name} from environment or Edge Config...`);
     if (process.env.EDGE_CONFIG) {
-      try {
-        const value = await get<string>(name);
-        console.log(`Value fetched from Edge Config for ${name}:`, value);
-        return value;
-      } catch (error) {
-        console.error(`Error fetching value from Edge Config for ${name}:`, error);
-      }
+      const value = await get<string>(name);
+      console.log(`Value fetched from Edge Config for ${name}:`, value);
+      return value;
     }
 
     const envValue = process.env[name];
@@ -133,12 +131,15 @@ export default async function Login({ searchParams }: { searchParams: { message:
   };
 
   const signUp = async (formData: FormData) => {
+    "use server";
+    console.log("Attempting to sign up a new user...");
+
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    console.log("Attempting to sign up with email:", email);
-
-    const emailDomainWhitelistPatternsString = await getEnvVarOrEdgeConfigValue("EMAIL_DOMAIN_WHITELIST");
+    const emailDomainWhitelistPatternsString = await getEnvVarOrEdgeConfigValue(
+      "EMAIL_DOMAIN_WHITELIST"
+    );
     const emailDomainWhitelist = emailDomainWhitelistPatternsString?.trim()
       ? emailDomainWhitelistPatternsString?.split(",")
       : [];
@@ -147,12 +148,12 @@ export default async function Login({ searchParams }: { searchParams: { message:
       ? emailWhitelistPatternsString?.split(",")
       : [];
 
+    console.log("Checking email against whitelist...");
     if (emailDomainWhitelist.length > 0 || emailWhitelist.length > 0) {
       const domainMatch = emailDomainWhitelist?.includes(email.split("@")[1]);
       const emailMatch = emailWhitelist?.includes(email);
-      console.log(`Email domain match: ${domainMatch}, email match: ${emailMatch}`);
       if (!domainMatch && !emailMatch) {
-        console.error(`Email ${email} is not allowed to sign up.`);
+        console.warn("Email not allowed to sign up:", email);
         return redirect(`/login?message=Email ${email} is not allowed to sign up.`);
       }
     }
@@ -160,39 +161,41 @@ export default async function Login({ searchParams }: { searchParams: { message:
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
 
+    console.log("Creating new user:", email);
     const { error } = await supabase.auth.signUp({
       email,
       password,
     });
 
     if (error) {
-      console.error("Sign-up error:", error.message);
+      console.error("Error during sign up:", error.message);
       return redirect(`/login?message=${error.message}`);
     }
 
-    console.log("Sign-up successful, redirecting to setup...");
+    console.log("Sign up successful, redirecting to setup...");
     return redirect("/setup");
   };
 
   const handleResetPassword = async (formData: FormData) => {
+    "use server";
+    console.log("Handling password reset...");
+
     const origin = headers().get("origin");
     const email = formData.get("email") as string;
-
-    console.log("Attempting password reset for email:", email);
-
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
 
+    console.log("Sending password reset email to:", email);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${origin}/auth/callback?next=/login/password`,
     });
 
     if (error) {
-      console.error("Password reset error:", error.message);
+      console.error("Error sending password reset email:", error.message);
       return redirect(`/login?message=${error.message}`);
     }
 
-    console.log("Password reset request successful, check email.");
+    console.log("Password reset email sent successfully.");
     return redirect("/login?message=Check email to reset password");
   };
 
@@ -228,30 +231,21 @@ export default async function Login({ searchParams }: { searchParams: { message:
           Login
         </SubmitButton>
 
-        <SubmitButton
-          formAction={signUp}
-          className="border-foreground/20 mb-2 rounded-md border px-4 py-2"
-        >
+        <SubmitButton formAction={signUp} className="border-foreground/20 mb-2 rounded-md border px-4 py-2">
           Sign Up
         </SubmitButton>
 
-        {/* Use the client-side GuestLoginButton here */}
         <GuestLoginButton />
 
         <div className="text-muted-foreground mt-1 flex justify-center text-sm">
           <span className="mr-1">Forgot your password?</span>
-          <button
-            formAction={handleResetPassword}
-            className="text-primary ml-1 underline hover:opacity-80"
-          >
+          <button formAction={handleResetPassword} className="text-primary ml-1 underline hover:opacity-80">
             Reset
           </button>
         </div>
 
         {searchParams?.message && (
-          <p className="bg-foreground/10 text-foreground mt-4 p-4 text-center">
-            {searchParams.message}
-          </p>
+          <p className="bg-foreground/10 text-foreground mt-4 p-4 text-center">{searchParams.message}</p>
         )}
       </form>
     </div>
