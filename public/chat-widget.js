@@ -25,23 +25,16 @@
     chatDiv.id = "chat-widget-container";
     document.body.appendChild(chatDiv);
 
-    // Fetch the custom build ID from the server-side environment variable
-    const buildId = document
-      .querySelector('meta[name="build-id"]')
-      ?.getAttribute("content");
+    // Attempt to fetch the build-manifest.json directly
+    const manifestPath = "/build-manifest.json";
 
-    if (!buildId) {
-      console.error("Build ID not found.");
-      return;
-    }
-
-    // Construct manifest paths with the build ID
-    const manifestPaths = [
-      `/_next/static/${buildId}/app-build-manifest.json`,
-      `/_next/static/${buildId}/build-manifest.json`,
-    ];
-
-    fetchFirstAvailableManifest(manifestPaths)
+    fetch(manifestPath)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch build manifest.");
+        }
+        return response.json();
+      })
       .then((manifest) => {
         const widgetChunkPaths = findWidgetChunks(manifest);
 
@@ -62,45 +55,13 @@
       });
   }
 
-  function fetchFirstAvailableManifest(paths) {
-    return new Promise((resolve, reject) => {
-      let index = 0;
-
-      function tryFetch() {
-        if (index >= paths.length) {
-          reject(new Error("No available manifests found."));
-          return;
-        }
-
-        fetch(paths[index])
-          .then((response) => {
-            if (!response.ok) {
-              index++;
-              tryFetch();
-            } else {
-              return response.json();
-            }
-          })
-          .then((manifest) => {
-            if (manifest) {
-              resolve(manifest);
-            }
-          })
-          .catch(() => {
-            index++;
-            tryFetch();
-          });
-      }
-
-      tryFetch();
-    });
-  }
-
   function findWidgetChunks(manifest) {
+    // Extract the relevant chunks from the manifest
+    const rootMainFiles = manifest.rootMainFiles || [];
     const pageChunks = manifest.pages
-      ? manifest.pages["/[locale]/chat/page"]
-      : manifest.rootMainFiles || [];
-    return pageChunks.filter(
+      ? manifest.pages["/[locale]/chat/page"] || []
+      : [];
+    return [...rootMainFiles, ...pageChunks].filter(
       (path) => path.includes("main-app") || path.includes("chat/page")
     );
   }

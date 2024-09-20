@@ -7,6 +7,9 @@ const withPWA = require("next-pwa")({
   disable: process.env.NODE_ENV === "development", // Disable PWA in development mode
 });
 
+const fs = require("fs");
+const path = require("path");
+
 module.exports = withBundleAnalyzer(
   withPWA({
     reactStrictMode: true,
@@ -41,6 +44,24 @@ module.exports = withBundleAnalyzer(
           tls: false,
         };
       }
+
+      // Copy the build manifest to the public directory after each build
+      config.plugins.push({
+        apply: (compiler) => {
+          compiler.hooks.afterEmit.tap("CopyBuildManifestPlugin", () => {
+            const buildManifestPath = path.join(__dirname, ".next", "build-manifest.json");
+            const publicPath = path.join(__dirname, "public", "build-manifest.json");
+
+            try {
+              fs.copyFileSync(buildManifestPath, publicPath);
+              console.log("Successfully copied build-manifest.json to public directory.");
+            } catch (error) {
+              console.error("Error copying build-manifest.json:", error);
+            }
+          });
+        },
+      });
+
       return config;
     },
     generateBuildId: async () => {
