@@ -45,8 +45,13 @@
         }
 
         widgetChunkPaths.forEach((chunkPath) => {
+          // Correct the chunk path to avoid the double 'static/static' issue
+          const correctedChunkPath = chunkPath.replace(
+            /^static\/static\//,
+            "static/"
+          );
           loadChunk(
-            `https://mia-final-v1-hosted.vercel.app/_next/static/${chunkPath}`,
+            `https://mia-final-v1-hosted.vercel.app/_next/${correctedChunkPath}`,
             chatDiv
           );
         });
