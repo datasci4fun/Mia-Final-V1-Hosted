@@ -1,47 +1,43 @@
-"use client";
+// C:\Users\blixa\Documents\xampp\git\Mia-Final-V1\components\widget\ui\radial-menu\RadialMenuSection.tsx
 
-import { FC } from "react";
+"use client"
+
+import { FC } from "react"
 
 interface RadialMenuSectionProps {
-  icon: React.ReactNode;
-  label: string;
-  position?: {
-    top?: string;
-    left?: string;
-    right?: string;
-    bottom?: string;
-    transform?: string;
-  };
-  wedge?: boolean; // Adding the wedge prop
-  onClick: () => void;
-  onHover: () => void;
-  isHighlighted: boolean;
+  icon: React.ReactNode
+  label: string
+  position: {
+    top?: string
+    left?: string
+    right?: string
+    bottom?: string
+    transform?: string
+  }
+  onClick: () => void
+  onHover: () => void
+  isHighlighted: boolean
 }
 
 export const RadialMenuSection: FC<RadialMenuSectionProps> = ({
   icon,
   label,
   position,
-  wedge = false, // Default value set to false
   onClick,
   onHover,
-  isHighlighted,
+  isHighlighted
 }) => {
-  // Set the wedge style and hide label when wedge is true
-  const wedgeStyle = wedge ? "wedge-style" : "";
-  const labelClass = wedge ? "hidden" : "mt-1 text-sm"; // Hide label for wedges
-
   return (
     <div
-      className={`section absolute flex cursor-pointer flex-col items-center justify-center transition-transform ${
+      className={`section absolute flex size-24 cursor-pointer flex-col items-center justify-center rounded-full transition-transform ${
         isHighlighted ? "bg-blue-600 text-white" : "bg-gray-700 text-white"
-      } ${wedgeStyle}`} // Apply wedge-style class if wedge is true
-      style={!wedge ? position : undefined} // Only apply position if not a wedge
+      }`}
+      style={position}
       onClick={onClick}
       onMouseEnter={onHover}
     >
       {icon}
-      <p className={labelClass}>{label}</p>
+      <p className="mt-1 text-sm">{label}</p>
     </div>
-  );
-};
+  )
+}
