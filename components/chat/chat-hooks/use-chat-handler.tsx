@@ -371,23 +371,26 @@ export const useChatHandler = () => {
           return updatedChats
         })
       }
-
-      await handleCreateMessages(
-        chatMessages,
-        currentChat,
-        profile!,
-        modelData!,
-        messageContent,
-        generatedText,
-        newMessageImages,
-        isRegeneration,
-        retrievedFileItems,
-        setChatMessages,
-        setChatFileItems,
-        setChatImages,
-        selectedAssistant
-      )
-
+      if (currentChat) {
+        await handleCreateMessages(
+          chatMessages,
+          currentChat,
+          profile!,
+          modelData!,
+          messageContent,
+          generatedText,
+          newMessageImages,
+          isRegeneration,
+          retrievedFileItems,
+          setChatMessages,
+          setChatFileItems,
+          setChatImages,
+          selectedAssistant
+        )
+      } else {
+        // handle the case where currentChat is null
+        console.error('Failed to create chat')
+      }
       setIsGenerating(false)
       setFirstTokenReceived(false)
     } catch (error) {
