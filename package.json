@@ -23,7 +23,8 @@
     "db-types": "supabase gen types typescript --local > supabase/types.ts",
     "db-pull": "supabase db remote commit",
     "db-push": "supabase db push",
-    "test": "jest"
+    "test": "jest",
+    "build-widget": "webpack --config webpack.widget.config.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.18.0",
@@ -98,6 +99,10 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.4",
+    "@babel/preset-react": "^7.24.7",
+    "@babel/preset-typescript": "^7.24.7",
     "@next/bundle-analyzer": "^14.0.2",
     "@tailwindcss/typography": "^0.5.10",
     "@testing-library/jest-dom": "^6.2.0",
@@ -110,6 +115,7 @@
     "@types/react-syntax-highlighter": "^15.5.11",
     "@types/uuid": "^9.0.7",
     "autoprefixer": "^10.4.16",
+    "babel-loader": "^9.2.1",
     "clsx": "^2.0.0",
     "eslint": "^8",
     "eslint-config-next": "^14.0.2",
@@ -124,7 +130,9 @@
     "tailwindcss": "^3.3.5",
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "webpack": "^5.94.0",
+    "webpack-cli": "^5.1.4"
   },
   "husky": {
     "hooks": {
