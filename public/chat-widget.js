@@ -5,9 +5,11 @@
     script.src = src;
     script.async = true;
     script.onload = callback;
+    script.onerror = () => console.error(`Failed to load script: ${src}`);
     document.head.appendChild(script);
   };
 
+  // Load React and ReactDOM before initializing the widget
   loadScript('https://unpkg.com/react@18/umd/react.production.min.js', () => {
     loadScript('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js', initWidget);
   });
@@ -17,51 +19,92 @@
     chatDiv.id = 'chat-widget-container';
     document.body.appendChild(chatDiv);
 
-    // Fetch app-build-manifest.json to get the correct chunk URL
-    fetch('/_next/static/app-build-manifest.json')
-      .then(response => response.json())
-      .then(manifest => {
-        // Find the chunk associated with your ChatWidget page
+    // Attempt to fetch the build manifest to dynamically find the chunk URLs
+    const manifestUrls = [
+      '/_next/static/build-manifest.json',  // Common path for the build manifest
+      '/_next/static/app-build-manifest.json'  // Alternative path for the app build manifest
+    ];
+
+    // Fetch the first available manifest
+    fetchFirstAvailableManifest(manifestUrls)
+      .then((manifest) => {
         const pageChunks = manifest.pages["/[locale]/chat/page"] || [];
 
-        // Filter to find the main application chunk or a specific one relevant to your ChatWidget
-        const widgetChunkPath = pageChunks.find(path => path.includes('main-app') || path.includes('chat/page'));
+        // Find the relevant chunk paths in the manifest
+        const widgetChunkPaths = pageChunks.filter(path => path.includes('main-app') || path.includes('chat/page'));
 
-        if (!widgetChunkPath) {
-          console.error('ChatWidget chunk not found in the app-build manifest.');
+        if (widgetChunkPaths.length === 0) {
+          console.error('No ChatWidget chunks found in the manifest.');
           return;
         }
 
-        // Load the main or specific widget chunk dynamically
-        const widgetScript = document.createElement('script');
-        widgetScript.src = `/_next/static/${widgetChunkPath}`;
-        widgetScript.async = true;
+        // Load the identified widget chunks dynamically
+        widgetChunkPaths.forEach((chunkPath) => {
+          const widgetScript = document.createElement('script');
+          widgetScript.src = `/_next/static/${chunkPath}`;
+          widgetScript.async = true;
 
-        widgetScript.onload = () => {
-          const { createElement } = window.React;
-          const { render } = window.ReactDOM;
-          const ChatWidget = window.ChatWidget; // Adjust to ensure the component is correctly exported in the bundle
+          widgetScript.onload = () => {
+            const { createElement } = window.React;
+            const { render } = window.ReactDOM;
+            const ChatWidget = window.ChatWidget; // Ensure this matches the export in your bundle
 
-          if (!ChatWidget) {
-            console.error('ChatWidget component not found on the window.');
-            return;
-          }
+            if (!ChatWidget) {
+              console.error('ChatWidget component not found on the window.');
+              return;
+            }
 
-          const widgetRoot = document.createElement('div');
-          widgetRoot.id = 'chat-widget-root';
-          chatDiv.appendChild(widgetRoot);
+            const widgetRoot = document.createElement('div');
+            widgetRoot.id = 'chat-widget-root';
+            chatDiv.appendChild(widgetRoot);
 
-          render(createElement(ChatWidget), widgetRoot);
-        };
+            render(createElement(ChatWidget), widgetRoot);
+          };
 
-        widgetScript.onerror = () => {
-          console.error('Failed to load the ChatWidget script.');
-        };
+          widgetScript.onerror = () => {
+            console.error(`Failed to load the ChatWidget script at ${chunkPath}`);
+          };
 
-        document.head.appendChild(widgetScript);
+          document.head.appendChild(widgetScript);
+        });
       })
-      .catch(error => {
-        console.error('Error fetching the app-build manifest or loading the ChatWidget chunk:', error);
+      .catch((error) => {
+        console.error('Error fetching the manifest or loading the ChatWidget chunk:', error);
       });
+  }
+
+  // Helper function to fetch the first available manifest
+  function fetchFirstAvailableManifest(manifestUrls) {
+    return new Promise((resolve, reject) => {
+      let index = 0;
+
+      function tryFetch() {
+        if (index >= manifestUrls.length) {
+          reject(new Error('No available manifests found.'));
+          return;
+        }
+
+        fetch(manifestUrls[index])
+          .then((response) => {
+            if (!response.ok) {
+              index++;
+              tryFetch();
+            } else {
+              return response.json();
+            }
+          })
+          .then((manifest) => {
+            if (manifest) {
+              resolve(manifest);
+            }
+          })
+          .catch(() => {
+            index++;
+            tryFetch();
+          });
+      }
+
+      tryFetch();
+    });
   }
 })();
