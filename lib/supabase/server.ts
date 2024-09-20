@@ -12,11 +12,12 @@ export const createClient = (cookieStore: ReturnType<typeof cookies>) => {
         },
         set(name: string, value: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value, ...options })
+            // Ensure cookies are set with SameSite=None and Secure attributes for cross-origin access
+            cookieStore.set({ name, value, ...options, sameSite: 'None', secure: true });
+            console.log(`Setting cookie '${name}' with SameSite=None and Secure.`);
           } catch (error) {
             // The `set` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            console.log('Error setting cookie:', error);
           }
         },
         remove(name: string, options: CookieOptions) {
