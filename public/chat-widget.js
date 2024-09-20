@@ -41,7 +41,9 @@
         }
 
         widgetChunkPaths.forEach((chunkPath) => {
-          loadChunk(`https://mia-final-v1-hosted.vercel.app/_next/static/${chunkPath}`, chatDiv);
+          // Ensure the chunkPath does not include extra /static
+          const cleanedPath = chunkPath.replace(/^static\//, '');
+          loadChunk(`https://mia-final-v1-hosted.vercel.app/_next/static/${cleanedPath}`, chatDiv);
         });
       })
       .catch((error) => {
