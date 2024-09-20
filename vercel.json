@@ -1,11 +1,14 @@
 {
     "headers": [
       {
-        "source": "/api/(.*)",
+        "source": "/(.*)",
         "headers": [
-          { "key": "Cross-Origin-Embedder-Policy", "value": "unsafe-none" }
+          {
+            "key": "Set-Cookie",
+            "value": "SameSite=None; Secure"
+          }
         ]
       }
     ]
   }
- 
+  
