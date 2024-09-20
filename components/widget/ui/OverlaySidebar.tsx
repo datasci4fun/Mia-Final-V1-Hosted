@@ -201,7 +201,7 @@ export const OverlaySidebar: FC<OverlaySidebarProps> = ({
         isOpen ? "block" : "hidden"
       }`}
     >
-      <div className="relative h-[75vh] w-full max-w-md rounded bg-white p-4 shadow-lg">
+      <div className="relative h-[75vh] w-full max-w-md rounded p-4 shadow-lg">
         <button
           onClick={handleCloseOverlay}
           className="absolute right-2 top-2 rounded-full bg-red-500 p-2 text-white focus:outline-none"
