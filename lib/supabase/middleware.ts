@@ -18,13 +18,12 @@ export const createClient = (request: NextRequest) => {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
+          // If the cookie is updated, update the cookies for the request and response
           request.cookies.set({
             name,
             value,
-            ...options,
-            sameSite: 'None', // Allow cross-origin access
-            secure: true,     // Ensure the cookie is only sent over HTTPS
-          });
+            ...options
+          })
           response = NextResponse.next({
             request: {
               headers: request.headers
@@ -33,19 +32,15 @@ export const createClient = (request: NextRequest) => {
           response.cookies.set({
             name,
             value,
-            ...options,
-            sameSite: 'None', // Allow cross-origin access
-            secure: true,     // Ensure the cookie is only sent over HTTPS
-          });
+            ...options
+          })
         },
         remove(name: string, options: CookieOptions) {
           // If the cookie is removed, update the cookies for the request and response
           request.cookies.set({
             name,
             value: "",
-            ...options,
-            sameSite: 'None', // Allow cross-origin access
-            secure: true,     // Ensure the cookie is only sent over HTTPS
+            ...options
           })
           response = NextResponse.next({
             request: {
@@ -55,9 +50,7 @@ export const createClient = (request: NextRequest) => {
           response.cookies.set({
             name,
             value: "",
-            ...options,
-            sameSite: 'None', // Allow cross-origin access
-            secure: true,     // Ensure the cookie is only sent over HTTPS
+            ...options
           })
         }
       }

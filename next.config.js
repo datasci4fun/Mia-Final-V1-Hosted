@@ -95,35 +95,6 @@ module.exports = withBundleAnalyzer(
 
       return config;
     },
-    async headers() {
-      return [
-        {
-          source: "/(.*)", // Apply to all routes
-          headers: [
-            {
-              key: "Content-Security-Policy",
-              value: "frame-ancestors 'self' https://usa-rs.com https://usa-rs.com/pages/next-gen-kitchen-solutions;",
-            },
-            {
-              key: "Cross-Origin-Embedder-Policy",
-              value: "credentialless", // Prevent loading of cross-origin resources unless explicitly allowed
-            },
-            {
-              key: "Cross-Origin-Opener-Policy",
-              value: "same-origin", // Ensures that the page is isolated from cross-origin resources
-            },
-            {
-              key: "Cross-Origin-Resource-Policy",
-              value: "cross-origin", // Allows cross-origin loading of resources like images, fonts
-            },
-            {
-              key: "Set-Cookie",
-              value: "SameSite=None; Secure", // Ensure cookies are cross-site compatible and secure
-            },
-          ],
-        },
-      ];
-    },
     generateBuildId: async () => {
       // Custom build ID
       return `custom-build-${new Date().getTime()}`;
