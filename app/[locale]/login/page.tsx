@@ -1,5 +1,3 @@
-"use client";
-
 import { Brand } from "@/components/ui/brand";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,11 +15,7 @@ export const metadata: Metadata = {
   title: "Login",
 };
 
-export default async function Login({
-  searchParams,
-}: {
-  searchParams: { message: string };
-}) {
+export default async function Login({ searchParams }: { searchParams: { message: string } }) {
   const cookieStore = cookies();
   console.log("Initializing Supabase client...");
 
@@ -74,10 +68,11 @@ export default async function Login({
 
     console.log("Redirecting to home workspace:", homeWorkspace.id);
     return redirect(`/${homeWorkspace.id}/chat`);
+  } else {
+    console.log("No session found, proceeding to login form...");
   }
 
   const signIn = async (formData: FormData) => {
-    "use server";
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const cookieStore = cookies();
@@ -111,45 +106,53 @@ export default async function Login({
       throw new Error(homeWorkspaceError.message || "An unexpected error occurred");
     }
 
+    if (!homeWorkspace) {
+      console.error("No home workspace found for user:", data.user.id);
+      throw new Error("Home workspace not found after sign-in");
+    }
+
     console.log("Redirecting to home workspace:", homeWorkspace.id);
     return redirect(`/${homeWorkspace.id}/chat`);
   };
 
   const getEnvVarOrEdgeConfigValue = async (name: string) => {
-    "use server";
     console.log(`Fetching value for ${name} from environment or Edge Config...`);
     if (process.env.EDGE_CONFIG) {
-      return await get<string>(name);
+      try {
+        const value = await get<string>(name);
+        console.log(`Value fetched from Edge Config for ${name}:`, value);
+        return value;
+      } catch (error) {
+        console.error(`Error fetching value from Edge Config for ${name}:`, error);
+      }
     }
-    return process.env[name];
+
+    const envValue = process.env[name];
+    console.log(`Value fetched from environment for ${name}:`, envValue);
+    return envValue;
   };
 
   const signUp = async (formData: FormData) => {
-    "use server";
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
     console.log("Attempting to sign up with email:", email);
 
-    const emailDomainWhitelistPatternsString = await getEnvVarOrEdgeConfigValue(
-      "EMAIL_DOMAIN_WHITELIST"
-    );
+    const emailDomainWhitelistPatternsString = await getEnvVarOrEdgeConfigValue("EMAIL_DOMAIN_WHITELIST");
     const emailDomainWhitelist = emailDomainWhitelistPatternsString?.trim()
-      ? emailDomainWhitelistPatternsString.split(",")
+      ? emailDomainWhitelistPatternsString?.split(",")
       : [];
-    const emailWhitelistPatternsString = await getEnvVarOrEdgeConfigValue(
-      "EMAIL_WHITELIST"
-    );
+    const emailWhitelistPatternsString = await getEnvVarOrEdgeConfigValue("EMAIL_WHITELIST");
     const emailWhitelist = emailWhitelistPatternsString?.trim()
-      ? emailWhitelistPatternsString.split(",")
+      ? emailWhitelistPatternsString?.split(",")
       : [];
 
-    // Check if the email is allowed to sign up
     if (emailDomainWhitelist.length > 0 || emailWhitelist.length > 0) {
       const domainMatch = emailDomainWhitelist?.includes(email.split("@")[1]);
       const emailMatch = emailWhitelist?.includes(email);
+      console.log(`Email domain match: ${domainMatch}, email match: ${emailMatch}`);
       if (!domainMatch && !emailMatch) {
-        console.warn(`Email ${email} is not allowed to sign up.`);
+        console.error(`Email ${email} is not allowed to sign up.`);
         return redirect(`/login?message=Email ${email} is not allowed to sign up.`);
       }
     }
@@ -172,7 +175,6 @@ export default async function Login({
   };
 
   const handleResetPassword = async (formData: FormData) => {
-    "use server";
     const origin = headers().get("origin");
     const email = formData.get("email") as string;
 
@@ -192,37 +194,6 @@ export default async function Login({
 
     console.log("Password reset request successful, check email.");
     return redirect("/login?message=Check email to reset password");
-  };
-
-  const handleGuestLogin = async () => {
-    try {
-      console.log("Starting guest login process...");
-
-      const response = await fetch("/api/guestLogin", {
-        method: "POST",
-      });
-
-      console.log("Guest login response status:", response.status);
-
-      if (!response.ok) {
-        const responseBody = await response.json();
-        console.error("Guest login failed with status:", response.status, responseBody);
-        throw new Error(`Guest login failed: ${JSON.stringify(responseBody)}`);
-      }
-
-      const data = await response.json();
-      console.log("Guest login successful, session data:", data);
-
-      // Redirect to the workspace or handle session here
-      window.location.href = "/workspace";
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error during guest login:", error.message);
-        window.location.href = `/login?message=${encodeURIComponent(error.message)}`;
-      } else {
-        console.error("Unknown error during guest login", error);
-      }
-    }
   };
 
   return (

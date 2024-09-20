@@ -1,0 +1,11 @@
+{
+    "headers": [
+      {
+        "source": "/api/(.*)",
+        "headers": [
+          { "key": "Cross-Origin-Embedder-Policy", "value": "unsafe-none" }
+        ]
+      }
+    ]
+  }
+ 
