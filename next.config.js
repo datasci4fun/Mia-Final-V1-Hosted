@@ -36,7 +36,6 @@ module.exports = withBundleAnalyzer(
       appDir: true,
     },
     webpack: (config, { isServer }) => {
-      // Resolve conflicts and ensure proper configuration
       if (!isServer) {
         config.resolve.fallback = {
           ...config.resolve.fallback,
@@ -46,12 +45,10 @@ module.exports = withBundleAnalyzer(
         };
       }
 
-      // Ensure the ChatWidget component is part of the entry points
       const originalEntry = config.entry;
       config.entry = async () => {
         const entries = await originalEntry();
 
-        // Include the ChatWidget component
         if (
           entries["main.js"] &&
           !entries["main.js"].includes(
@@ -66,7 +63,6 @@ module.exports = withBundleAnalyzer(
         return entries;
       };
 
-      // Copy build manifest to public directory
       config.plugins.push({
         apply: (compiler) => {
           compiler.hooks.afterEmit.tap("CopyBuildManifestPlugin", () => {
@@ -96,8 +92,22 @@ module.exports = withBundleAnalyzer(
       return config;
     },
     generateBuildId: async () => {
-      // Custom build ID
       return `custom-build-${new Date().getTime()}`;
+    },
+
+    // Add headers to set SameSite and Secure for cookies
+    async headers() {
+      return [
+        {
+          source: "/(.*)", // Apply to all routes
+          headers: [
+            {
+              key: "Set-Cookie",
+              value: "SameSite=None; Secure", // Ensure cookies are cross-site compatible and secure
+            },
+          ],
+        },
+      ];
     },
   })
 );
