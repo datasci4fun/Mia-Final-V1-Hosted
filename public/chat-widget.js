@@ -11,6 +11,7 @@
 
   // Load React and ReactDOM before initializing the widget
   loadScript("https://unpkg.com/react@18/umd/react.production.min.js", () => {
+    console.log("React loaded successfully.");
     loadScript(
       "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js",
       initWidget
@@ -18,12 +19,14 @@
   });
 
   function initWidget() {
+    console.log("ReactDOM loaded successfully, initializing widget.");
     const chatDiv = document.createElement("div");
     chatDiv.id = "chat-widget-container";
     document.body.appendChild(chatDiv);
 
     // Fetch the build-manifest.json from the correct hosted location
-    const manifestPath = "https://mia-final-v1-hosted.vercel.app/build-manifest.json";
+    const manifestPath =
+      "https://mia-final-v1-hosted.vercel.app/build-manifest.json";
 
     fetch(manifestPath)
       .then((response) => {
@@ -33,6 +36,7 @@
         return response.json();
       })
       .then((manifest) => {
+        console.log("Manifest fetched successfully:", manifest);
         const widgetChunkPaths = findWidgetChunks(manifest);
 
         if (!widgetChunkPaths.length) {
@@ -41,9 +45,10 @@
         }
 
         widgetChunkPaths.forEach((chunkPath) => {
-          // Ensure the chunkPath does not include extra /static
-          const cleanedPath = chunkPath.replace(/^static\//, '');
-          loadChunk(`https://mia-final-v1-hosted.vercel.app/_next/static/${cleanedPath}`, chatDiv);
+          loadChunk(
+            `https://mia-final-v1-hosted.vercel.app/_next/static/${chunkPath}`,
+            chatDiv
+          );
         });
       })
       .catch((error) => {
@@ -60,9 +65,11 @@
     const pageChunks = manifest.pages
       ? manifest.pages["/[locale]/chat/page"] || []
       : [];
-    return [...rootMainFiles, ...pageChunks].filter(
+    const relevantChunks = [...rootMainFiles, ...pageChunks].filter(
       (path) => path.includes("main-app") || path.includes("chat/page")
     );
+    console.log("Relevant chunks found:", relevantChunks);
+    return relevantChunks;
   }
 
   function loadChunk(chunkPath, container) {
@@ -71,6 +78,7 @@
     script.async = true;
 
     script.onload = () => {
+      console.log(`Loaded script: ${chunkPath}`);
       const { createElement } = window.React;
       const { render } = window.ReactDOM;
       const ChatWidget = window.ChatWidget;
@@ -80,6 +88,7 @@
         return;
       }
 
+      console.log("ChatWidget component found, rendering now.");
       const widgetRoot = document.createElement("div");
       widgetRoot.id = "chat-widget-root";
       container.appendChild(widgetRoot);
