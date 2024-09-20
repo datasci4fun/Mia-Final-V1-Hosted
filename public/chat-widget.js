@@ -10,23 +10,20 @@
   };
 
   // Load React and ReactDOM before initializing the widget
-  loadScript(
-    "https://unpkg.com/react@18/umd/react.production.min.js",
-    () => {
-      loadScript(
-        "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js",
-        initWidget
-      );
-    }
-  );
+  loadScript("https://unpkg.com/react@18/umd/react.production.min.js", () => {
+    loadScript(
+      "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js",
+      initWidget
+    );
+  });
 
   function initWidget() {
     const chatDiv = document.createElement("div");
     chatDiv.id = "chat-widget-container";
     document.body.appendChild(chatDiv);
 
-    // Attempt to fetch the build-manifest.json directly
-    const manifestPath = "/build-manifest.json";
+    // Fetch the build-manifest.json from the correct hosted location
+    const manifestPath = "https://mia-final-v1-hosted.vercel.app/build-manifest.json";
 
     fetch(manifestPath)
       .then((response) => {
@@ -44,7 +41,7 @@
         }
 
         widgetChunkPaths.forEach((chunkPath) => {
-          loadChunk(`/_next/static/${chunkPath}`, chatDiv);
+          loadChunk(`https://mia-final-v1-hosted.vercel.app/_next/static/${chunkPath}`, chatDiv);
         });
       })
       .catch((error) => {
