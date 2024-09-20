@@ -24,7 +24,7 @@ export const ChatbotUIPNG: FC<ChatbotUIPNGProps> = ({
   return (
     <img
       src={imageUrl || defaultImageUrl} // Use the provided imageUrl or default
-      alt={altText || "Chatbot UI"} // Use the provided alt text or default
+      alt={altText || "Mia Chat"} // Use the provided alt text or default
       width={189 * scale}
       height={194 * scale}
       style={{ maxWidth: "100%", height: "auto" }} // Ensure the image scales correctly
