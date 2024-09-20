@@ -45,16 +45,39 @@ module.exports = withBundleAnalyzer(
         };
       }
 
+      // Modify the Webpack entry point to include ChatWidget component
+      const originalEntry = config.entry;
+      config.entry = async () => {
+        const entries = await originalEntry();
+
+        // Add the ChatWidget component to the entries
+        if (entries['main.js'] && !entries['main.js'].includes(path.resolve(__dirname, 'components/ChatWidget.tsx'))) {
+          entries['main.js'].push(path.resolve(__dirname, 'components/ChatWidget.tsx'));
+        }
+
+        return entries;
+      };
+
       // Copy the build manifest to the public directory after each build
       config.plugins.push({
         apply: (compiler) => {
           compiler.hooks.afterEmit.tap("CopyBuildManifestPlugin", () => {
-            const buildManifestPath = path.join(__dirname, ".next", "build-manifest.json");
-            const publicPath = path.join(__dirname, "public", "build-manifest.json");
+            const buildManifestPath = path.join(
+              __dirname,
+              ".next",
+              "build-manifest.json"
+            );
+            const publicPath = path.join(
+              __dirname,
+              "public",
+              "build-manifest.json"
+            );
 
             try {
               fs.copyFileSync(buildManifestPath, publicPath);
-              console.log("Successfully copied build-manifest.json to public directory.");
+              console.log(
+                "Successfully copied build-manifest.json to public directory."
+              );
             } catch (error) {
               console.error("Error copying build-manifest.json:", error);
             }
