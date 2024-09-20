@@ -43,13 +43,10 @@ export async function POST(request: Request) {
   let session = sessionData?.session;
 
   if (!session || !session.user?.is_anonymous) {
-    console.log(
-      "No existing session or not anonymous, signing in anonymously..."
-    );
+    console.log("No existing session or not anonymous, signing in anonymously...");
 
     // If no session or the user is not anonymous, create a new anonymous session
-    const { data: signInData, error: signInError } =
-      await supabase.auth.signInAnonymously();
+    const { data: signInData, error: signInError } = await supabase.auth.signInAnonymously();
 
     if (!signInData || !signInData.user) {
       console.error("Sign in error:", signInError);
@@ -69,14 +66,18 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Parse the request URL to extract query parameters
+    const requestUrl = new URL(request.url);
+    const viewParam = requestUrl.searchParams.get("view") || ""; // Extract the 'view' parameter if it exists
+    console.log("View parameter:", viewParam);
+
     // Check if the user already has a home workspace
     const existingHomeWorkspace = await getHomeWorkspaceByUserId(userId);
     console.log("Existing home workspace:", existingHomeWorkspace);
 
     if (existingHomeWorkspace) {
-      // Redirect to the existing workspace
-      const requestUrl = new URL(request.url);
-      const workspaceUrl = `${requestUrl.origin}/${existingHomeWorkspace}/chat`;
+      // Redirect to the existing workspace with the view parameter if it exists
+      const workspaceUrl = `${requestUrl.origin}/${existingHomeWorkspace}/chat${viewParam ? `?view=${viewParam}` : ""}`;
       console.log("Redirecting to existing workspace URL:", workspaceUrl);
 
       return NextResponse.json({ session, workspaceUrl });
@@ -104,9 +105,8 @@ export async function POST(request: Request) {
     const createdWorkspace = await createWorkspace(workspaceData);
     console.log("Workspace created successfully:", createdWorkspace);
 
-    const requestUrl = new URL(request.url);
-    const workspaceUrl = `${requestUrl.origin}/${createdWorkspace.id}/chat`;
-
+    // Build the redirect URL with the preserved view parameter
+    const workspaceUrl = `${requestUrl.origin}/${createdWorkspace.id}/chat${viewParam ? `?view=${viewParam}` : ""}`;
     console.log("Redirecting to new workspace URL:", workspaceUrl);
     return NextResponse.json({ session, workspaceUrl });
   } catch (error) {

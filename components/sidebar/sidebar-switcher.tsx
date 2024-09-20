@@ -1,4 +1,4 @@
-import { ContentType } from "@/types"
+import { ContentType } from "@/types";
 import {
   IconAdjustmentsHorizontal,
   IconBolt,
@@ -7,22 +7,23 @@ import {
   IconMessage,
   IconPencil,
   IconRobotFace,
-  IconSparkles
-} from "@tabler/icons-react"
-import { FC } from "react"
-import { TabsList } from "../ui/tabs"
-import { WithTooltip } from "../ui/with-tooltip"
-import { ProfileSettings } from "../utility/profile-settings"
-import { SidebarSwitchItem } from "./sidebar-switch-item"
+  IconSparkles,
+} from "@tabler/icons-react";
+import { FC } from "react";
+import { TabsList } from "../ui/tabs";
+import { WithTooltip } from "../ui/with-tooltip";
+import { ProfileSettings } from "../utility/profile-settings";
+import { SidebarSwitchItem } from "./sidebar-switch-item";
+import EnsureViewWidgetButton from "../ui/EnsureViewWidgetButton"; // Import the new component
 
-export const SIDEBAR_ICON_SIZE = 28
+export const SIDEBAR_ICON_SIZE = 28;
 
 interface SidebarSwitcherProps {
-  onContentTypeChange: (contentType: ContentType) => void
+  onContentTypeChange: (contentType: ContentType) => void;
 }
 
 export const SidebarSwitcher: FC<SidebarSwitcherProps> = ({
-  onContentTypeChange
+  onContentTypeChange,
 }) => {
   return (
     <div className="flex flex-col justify-between border-r-2 pb-5">
@@ -77,11 +78,8 @@ export const SidebarSwitcher: FC<SidebarSwitcherProps> = ({
       </TabsList>
 
       <div className="flex flex-col items-center space-y-4">
-        {/* TODO */}
-        {/* <WithTooltip display={<div>Import</div>} trigger={<Import />} /> */}
-
-        {/* TODO */}
-        {/* <Alerts /> */}
+        {/* Add the EnsureViewWidgetButton above Profile Settings */}
+        <EnsureViewWidgetButton />
 
         <WithTooltip
           display={<div>Profile Settings</div>}
@@ -89,5 +87,5 @@ export const SidebarSwitcher: FC<SidebarSwitcherProps> = ({
         />
       </div>
     </div>
-  )
-}
+  );
+};
