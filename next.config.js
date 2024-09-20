@@ -103,7 +103,7 @@ module.exports = withBundleAnalyzer(
           headers: [
             {
               key: "Access-Control-Allow-Origin",
-              value: "https://mia-final-v1-hosted.vercel.app", // Allow specific origin
+              value: "mia-final-v1-hosted.vercel.app", // Allow specific origin
             },
             {
               key: "Access-Control-Allow-Credentials",
@@ -115,7 +115,7 @@ module.exports = withBundleAnalyzer(
             },
             {
               key: "Access-Control-Allow-Headers",
-              value: "Content-Type, Authorization", // Allow specific headers
+              value: "Content-Type, Authorization, Accept-Language", // Allow specific headers
             },
             {
               key: "Set-Cookie",
