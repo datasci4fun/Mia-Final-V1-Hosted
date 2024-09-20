@@ -1,10 +1,10 @@
 "use client";
 
-import { FC, useEffect, useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   IconMessageCircle,
-  IconTag,
   IconTool,
+  IconTag,
 } from "@tabler/icons-react";
 import { RadialMenuSection } from "@/components/widget/ui/radial-menu/RadialMenuSection";
 import { ProfileSettings } from "@/components/utility/profile-settings";
@@ -12,14 +12,13 @@ import { ChatHelp } from "@/components/widget/chat/chat-help";
 import { OverlaySidebar } from "@/components/widget/ui/OverlaySidebar";
 import { ContentType } from "@/types";
 import { useSearchParams, useRouter } from "next/navigation";
-import "./RadialMenu.css"; // Import CSS for radial behavior
 
 interface RadialMenuProps {
   isOpen: boolean;
   toggleMenu: () => void;
 }
 
-export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
+export const RadialMenu: React.FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
   const [menuAnimation, setMenuAnimation] = useState("");
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [currentContentType, setCurrentContentType] =
@@ -27,11 +26,8 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
   const [highlightedSection, setHighlightedSection] = useState<string | null>(
     null
   );
-  const wheelRef = useRef<HTMLDivElement | null>(null);
-  const [showing, setShowing] = useState(false);
-  const [anchorX, setAnchorX] = useState(0);
-  const [anchorY, setAnchorY] = useState(0);
-  const minDistance = 100;
+  const radialMenuRef = useRef<HTMLDivElement>(null);
+
   const searchParams = useSearchParams();
   const isWidgetView = searchParams.get("view") === "widget";
   const router = useRouter();
@@ -51,72 +47,18 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
     toggleMenu(); // Close the radial menu as well
   };
 
-  const handleMouseDown = (e: MouseEvent) => {
-    setShowing(true);
-    setAnchorX(e.clientX);
-    setAnchorY(e.clientY);
-    wheelRef.current?.style.setProperty("--x", `${e.clientX}px`);
-    wheelRef.current?.style.setProperty("--y", `${e.clientY}px`);
-    wheelRef.current?.classList.add("on");
-  };
-
-  const handleMouseUp = () => {
-    setShowing(false);
-    wheelRef.current?.classList.remove("on");
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!showing) return;
-
-    const dx = e.clientX - anchorX;
-    const dy = e.clientY - anchorY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance >= minDistance) {
-      const angle = Math.atan2(dy, dx) + 0.625 * Math.PI;
-      const normalizedAngle = (angle + Math.PI * 2) % (Math.PI * 2);
-      setHighlightedSection(
-        ["chats", "prompts", "tools"][
-          Math.floor(normalizedAngle / (Math.PI / 3))
-        ] || null
-      );
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener("mousedown", handleMouseDown);
-    document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("mousemove", handleMouseMove);
-    return () => {
-      document.removeEventListener("mousedown", handleMouseDown);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, [showing, anchorX, anchorY]);
-
-  const handleSectionClick = (path: string) => {
-    const newPath = isWidgetView ? `${path}?view=widget` : path;
-    router.push(newPath);
-    handleCloseOverlayAndMenu(); // Ensure the overlay and menu close
-  };
-
   return (
     <div className={`relative z-50 ${isOpen ? "block" : "hidden"}`}>
       {isOpen && (
         <div
           className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 ${menuAnimation}`}
-          ref={wheelRef}
+          ref={radialMenuRef}
         >
-          <div className="radial-menu open relative flex size-full items-center justify-center">
-            {/* Radial Menu Sections as wedges */}
+          <div className="wheel">
+            {/* Radial Menu Sections */}
             <RadialMenuSection
               icon={<IconMessageCircle size={24} />}
               label="Chats"
-              position={{
-                top: "5%",
-                left: "50%",
-                transform: "translateX(-50%) rotate(45deg)",
-              }}
               wedge
               onHover={() => setHighlightedSection("chats")}
               isHighlighted={highlightedSection === "chats"}
@@ -126,11 +68,6 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             <RadialMenuSection
               icon={<IconTag size={24} />}
               label="Prompts"
-              position={{
-                bottom: "5%",
-                left: "50%",
-                transform: "translateX(-50%) rotate(135deg)",
-              }}
               wedge
               onHover={() => setHighlightedSection("prompts")}
               isHighlighted={highlightedSection === "prompts"}
@@ -140,16 +77,30 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             <RadialMenuSection
               icon={<IconTool size={24} />}
               label="Tools"
-              position={{
-                top: "50%",
-                right: "5%",
-                transform: "translateY(-50%) rotate(225deg)",
-              }}
               wedge
               onHover={() => setHighlightedSection("tools")}
               isHighlighted={highlightedSection === "tools"}
               onClick={() => handleOverlayToggle("tools")}
             />
+
+            {/* Center Radial Element */}
+            <div className="radial-center">
+              <svg
+                width="50"
+                height="50"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-white opacity-80"
+              >
+                <path
+                  d="M12 2L19 21H5L12 2Z"
+                  fill="currentColor"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                />
+              </svg>
+            </div>
 
             {/* Profile Settings positioned in the bottom left corner */}
             <div
