@@ -12,7 +12,7 @@ import { ChatHelp } from "@/components/widget/chat/chat-help";
 import { OverlaySidebar } from "@/components/widget/ui/OverlaySidebar";
 import { ContentType } from "@/types";
 import { useSearchParams, useRouter } from "next/navigation";
-import "./RadialMenu.css"; // Import CSS for the radial behavior
+import "./RadialMenu.css"; // Import CSS for radial behavior
 
 interface RadialMenuProps {
   isOpen: boolean;
@@ -108,15 +108,16 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
           ref={wheelRef}
         >
           <div className="radial-menu open relative flex size-full items-center justify-center">
-            {/* Radial Menu Sections */}
+            {/* Radial Menu Sections as wedges */}
             <RadialMenuSection
               icon={<IconMessageCircle size={24} />}
               label="Chats"
               position={{
                 top: "5%",
                 left: "50%",
-                transform: "translateX(-50%)",
+                transform: "translateX(-50%) rotate(45deg)",
               }}
+              wedge
               onHover={() => setHighlightedSection("chats")}
               isHighlighted={highlightedSection === "chats"}
               onClick={() => handleOverlayToggle("chats")}
@@ -128,8 +129,9 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
               position={{
                 bottom: "5%",
                 left: "50%",
-                transform: "translateX(-50%)",
+                transform: "translateX(-50%) rotate(135deg)",
               }}
+              wedge
               onHover={() => setHighlightedSection("prompts")}
               isHighlighted={highlightedSection === "prompts"}
               onClick={() => handleOverlayToggle("prompts")}
@@ -141,8 +143,9 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
               position={{
                 top: "50%",
                 right: "5%",
-                transform: "translateY(-50%)",
+                transform: "translateY(-50%) rotate(225deg)",
               }}
+              wedge
               onHover={() => setHighlightedSection("tools")}
               isHighlighted={highlightedSection === "tools"}
               onClick={() => handleOverlayToggle("tools")}

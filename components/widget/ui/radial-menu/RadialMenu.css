@@ -54,6 +54,7 @@
     transition: color 0.3s;
   }
   
+  /* Adjust for each wedge rotation */
   .arc:nth-child(1) {
     --rotation: 45deg;
     --color: #ff6b6b;
@@ -72,5 +73,20 @@
   .arc:nth-child(4) {
     --rotation: 315deg;
     --color: #5f27cd;
+  }
+  
+  .section {
+    border-radius: 50%; /* Default to circular style */
+    transition: all 0.3s ease;
+  }
+  
+  .wedge-style {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); /* Makes the section appear as a wedge */
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+  
+  .section:hover {
+    transform: scale(1.1); /* Slightly enlarge on hover */
   }
   
