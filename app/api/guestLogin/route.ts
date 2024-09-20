@@ -23,17 +23,27 @@ export async function POST(request: Request) {
           return cookieValue;
         },
         set(name: string, value: string) {
-          // Set cookies with SameSite=None and Secure attributes
+          // Set cookies with SameSite=None and Secure attributes for cross-origin compatibility on mobile
           cookieStore.set(name, value, {
             path: "/",
-            sameSite: "none", // Allow cross-site access
-            secure: true,     // Ensure cookies are only sent over HTTPS
+            sameSite: "none", // Ensure the cookie is sent in cross-origin requests
+            secure: true,     // Cookies are only sent over HTTPS
+            httpOnly: true,   // Cookie is not accessible via JavaScript (for security)
+            domain: "mia-final-v1-hosted.vercel.app", // Set domain for cross-origin compatibility
           });
-          console.log(`Setting cookie '${name}' to value '${value}' with SameSite=None and Secure attributes.`); // Log cookie setting
+          console.log(`Setting cookie '${name}' to value '${value}' with SameSite=None, Secure, HttpOnly, and domain settings.`); // Log cookie setting
         },
       },
     }
   );
+
+  // CORS setup - add headers to ensure requests from the mobile widget are allowed
+  const responseHeaders = {
+    "Access-Control-Allow-Origin": "https://mia-final-v1-hosted.vercel.app",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
 
   // Get the session to check if the user is already anonymous
   const { data: sessionData } = await supabase.auth.getSession();
@@ -52,7 +62,7 @@ export async function POST(request: Request) {
       console.error("Sign in error:", signInError);
       return NextResponse.json(
         { error: "Anonymous login failed" },
-        { status: 500 }
+        { status: 500, headers: responseHeaders }
       );
     }
 
@@ -80,7 +90,7 @@ export async function POST(request: Request) {
       const workspaceUrl = `${requestUrl.origin}/${existingHomeWorkspace}/chat${viewParam ? `?view=${viewParam}` : ""}`;
       console.log("Redirecting to existing workspace URL:", workspaceUrl);
 
-      return NextResponse.json({ session, workspaceUrl });
+      return NextResponse.json({ session, workspaceUrl }, { headers: responseHeaders });
     }
 
     // If no home workspace exists, create a new one
@@ -108,15 +118,15 @@ export async function POST(request: Request) {
     // Build the redirect URL with the preserved view parameter
     const workspaceUrl = `${requestUrl.origin}/${createdWorkspace.id}/chat${viewParam ? `?view=${viewParam}` : ""}`;
     console.log("Redirecting to new workspace URL:", workspaceUrl);
-    return NextResponse.json({ session, workspaceUrl });
+    return NextResponse.json({ session, workspaceUrl }, { headers: responseHeaders });
   } catch (error) {
     console.error("Error creating or fetching workspace:", error);
     if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error.message }, { status: 500, headers: responseHeaders });
     } else {
       return NextResponse.json(
         { error: "An unknown error occurred" },
-        { status: 500 }
+        { status: 500, headers: responseHeaders }
       );
     }
   }
