@@ -29,7 +29,7 @@ export const RadialMenuSection: FC<RadialMenuSectionProps> = ({
 }) => {
   return (
     <div
-      className={`section absolute flex size-18 cursor-pointer flex-col items-center justify-center rounded-full transition-transform ${
+      className={`section absolute flex size-24 cursor-pointer flex-col items-center justify-center rounded-full transition-transform ${
         isHighlighted ? "bg-blue-600 text-white" : "bg-gray-700 text-white"
       }`}
       style={position}
