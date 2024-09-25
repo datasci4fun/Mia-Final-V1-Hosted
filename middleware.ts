@@ -4,8 +4,32 @@ import { NextResponse, type NextRequest } from "next/server";
 import i18nConfig from "./i18nConfig";
 
 export async function middleware(request: NextRequest) {
+  // i18n routing
   const i18nResult = i18nRouter(request, i18nConfig);
   if (i18nResult) return i18nResult;
+
+  // **New Logic Start**
+  // 1. Check if the request is coming from usa-rs.com
+  const referer = request.headers.get('referer') || '';
+  const origin = request.headers.get('origin') || '';
+  const host = request.headers.get('host') || '';
+  const isFromUsaRs = referer.includes('usa-rs.com') || origin.includes('usa-rs.com');
+
+  // 2. Check if the user is on a mobile device
+  const userAgent = request.headers.get('user-agent') || '';
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+
+  // 3. If both conditions are met, ensure '?view=widget' is in the URL
+  if (isFromUsaRs && isMobile) {
+    const url = request.nextUrl.clone();
+    const viewParam = url.searchParams.get('view');
+
+    if (viewParam !== 'widget') {
+      url.searchParams.set('view', 'widget');
+      return NextResponse.redirect(url);
+    }
+  }
+  // **New Logic End**
 
   // Skip session logic on login page
   if (request.nextUrl.pathname === "/login") {
