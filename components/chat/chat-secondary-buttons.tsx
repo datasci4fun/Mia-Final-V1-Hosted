@@ -22,7 +22,9 @@ export const ChatSecondaryButtons: FC<ChatSecondaryButtonsProps> = ({}) => {
                 <div className="text-xl font-bold">Chat Info</div>
 
                 <div className="mx-auto mt-2 max-w-xs space-y-2 sm:max-w-sm md:max-w-md lg:max-w-lg">
-                  <div>Model: {selectedChat.model}</div>
+                  {/* Remove or comment out the model display */}
+                  {/* <div>Model: {selectedChat.model}</div> */}
+                  <div>Model: Mia 1.0</div>
                   <div>Prompt: {selectedChat.prompt}</div>
 
                   <div>Temperature: {selectedChat.temperature}</div>
@@ -43,7 +45,7 @@ export const ChatSecondaryButtons: FC<ChatSecondaryButtonsProps> = ({}) => {
                   </div>
 
                   <div>
-                    Embeddings Provider: {selectedChat.embeddings_provider}
+                  Knowledge Base: Enabled{/* <div>Embeddings Provider: {selectedChat.embeddings_provider}</div> */}
                   </div>
                 </div>
               </div>
