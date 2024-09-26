@@ -1,51 +1,52 @@
-"use client"
+"use client";
 
-import { useChatHandler } from "@/components/chat/chat-hooks/use-chat-handler"
+import { useChatHandler } from "@/components/chat/chat-hooks/use-chat-handler";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover"
-import { ChatbotUIContext } from "@/context/context"
-import { createWorkspace } from "@/db/workspaces"
-import useHotkey from "@/lib/hooks/use-hotkey"
-import { IconBuilding, IconHome, IconPlus } from "@tabler/icons-react"
-import { ChevronsUpDown } from "lucide-react"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { FC, useContext, useEffect, useState } from "react"
-import { Button } from "../ui/button"
-import { Input } from "../ui/input"
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ChatbotUIContext } from "@/context/context";
+import { createWorkspace } from "@/db/workspaces";
+import useHotkey from "@/lib/hooks/use-hotkey";
+import { IconBuilding, IconHome, IconPlus } from "@tabler/icons-react";
+import { ChevronsUpDown } from "lucide-react";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation"; // Import useSearchParams
+import { FC, useContext, useEffect, useState } from "react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 interface WorkspaceSwitcherProps {}
 
 export const WorkspaceSwitcher: FC<WorkspaceSwitcherProps> = ({}) => {
-  useHotkey(";", () => setOpen(prevState => !prevState))
+  useHotkey(";", () => setOpen((prevState) => !prevState));
 
   const {
     workspaces,
     workspaceImages,
     selectedWorkspace,
     setSelectedWorkspace,
-    setWorkspaces
-  } = useContext(ChatbotUIContext)
+    setWorkspaces,
+  } = useContext(ChatbotUIContext);
 
-  const { handleNewChat } = useChatHandler()
+  const { handleNewChat } = useChatHandler();
 
-  const router = useRouter()
+  const router = useRouter();
+  const searchParams = useSearchParams(); // Get the current search parameters
 
-  const [open, setOpen] = useState(false)
-  const [value, setValue] = useState("")
-  const [search, setSearch] = useState("")
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    if (!selectedWorkspace) return
+    if (!selectedWorkspace) return;
 
-    setValue(selectedWorkspace.id)
-  }, [selectedWorkspace])
+    setValue(selectedWorkspace.id);
+  }, [selectedWorkspace]);
 
   const handleCreateWorkspace = async () => {
-    if (!selectedWorkspace) return
+    if (!selectedWorkspace) return;
 
     const createdWorkspace = await createWorkspace({
       user_id: selectedWorkspace.user_id,
@@ -60,45 +61,61 @@ export const WorkspaceSwitcher: FC<WorkspaceSwitcherProps> = ({}) => {
         selectedWorkspace.include_workspace_instructions,
       instructions: selectedWorkspace.instructions,
       is_home: false,
-      name: "New Workspace"
-    })
+      name: "New Workspace",
+    });
 
-    setWorkspaces([...workspaces, createdWorkspace])
-    setSelectedWorkspace(createdWorkspace)
-    setOpen(false)
+    setWorkspaces([...workspaces, createdWorkspace]);
+    setSelectedWorkspace(createdWorkspace);
+    setOpen(false);
 
-    return router.push(`/${createdWorkspace.id}/chat`)
-  }
+    // Serialize the current query parameters to a string
+    const queryString = new URLSearchParams(
+      Object.fromEntries(searchParams.entries())
+    ).toString();
+
+    // Navigate to the new workspace while preserving the query parameters
+    return router.push(`/${createdWorkspace.id}/chat?${queryString}`);
+  };
 
   const getWorkspaceName = (workspaceId: string) => {
-    const workspace = workspaces.find(workspace => workspace.id === workspaceId)
+    const workspace = workspaces.find(
+      (workspace) => workspace.id === workspaceId
+    );
 
-    if (!workspace) return
+    if (!workspace) return;
 
-    return workspace.name
-  }
+    return workspace.name;
+  };
 
   const handleSelect = (workspaceId: string) => {
-    const workspace = workspaces.find(workspace => workspace.id === workspaceId)
+    const workspace = workspaces.find(
+      (workspace) => workspace.id === workspaceId
+    );
 
-    if (!workspace) return
+    if (!workspace) return;
 
-    setSelectedWorkspace(workspace)
-    setOpen(false)
+    setSelectedWorkspace(workspace);
+    setOpen(false);
 
-    return router.push(`/${workspace.id}/chat`)
-  }
+    // Serialize the current query parameters to a string
+    const queryString = new URLSearchParams(
+      Object.fromEntries(searchParams.entries())
+    ).toString();
+
+    // Navigate to the selected workspace while preserving the query parameters
+    return router.push(`/${workspace.id}/chat?${queryString}`);
+  };
 
   const workspaceImage = workspaceImages.find(
-    image => image.workspaceId === selectedWorkspace?.id
-  )
+    (image) => image.workspaceId === selectedWorkspace?.id
+  );
   const imageSrc = workspaceImage
     ? workspaceImage.url
     : selectedWorkspace?.is_home
-      ? ""
-      : ""
+    ? ""
+    : "";
 
-  const IconComponent = selectedWorkspace?.is_home ? IconHome : IconBuilding
+  const IconComponent = selectedWorkspace?.is_home ? IconHome : IconBuilding;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -145,16 +162,16 @@ export const WorkspaceSwitcher: FC<WorkspaceSwitcherProps> = ({}) => {
             placeholder="Search workspaces..."
             autoFocus
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
           />
 
           <div className="flex flex-col space-y-1">
             {workspaces
-              .filter(workspace => workspace.is_home)
-              .map(workspace => {
+              .filter((workspace) => workspace.is_home)
+              .map((workspace) => {
                 const image = workspaceImages.find(
-                  image => image.workspaceId === workspace.id
-                )
+                  (image) => image.workspaceId === workspace.id
+                );
 
                 return (
                   <Button
@@ -176,24 +193,22 @@ export const WorkspaceSwitcher: FC<WorkspaceSwitcherProps> = ({}) => {
                       <IconHome className="mr-3" size={28} />
                     )}
 
-                    <div className="text-lg font-semibold">
-                      {workspace.name}
-                    </div>
+                    <div className="text-lg font-semibold">{workspace.name}</div>
                   </Button>
-                )
+                );
               })}
 
             {workspaces
               .filter(
-                workspace =>
+                (workspace) =>
                   !workspace.is_home &&
                   workspace.name.toLowerCase().includes(search.toLowerCase())
               )
               .sort((a, b) => a.name.localeCompare(b.name))
-              .map(workspace => {
+              .map((workspace) => {
                 const image = workspaceImages.find(
-                  image => image.workspaceId === workspace.id
-                )
+                  (image) => image.workspaceId === workspace.id
+                );
 
                 return (
                   <Button
@@ -215,15 +230,13 @@ export const WorkspaceSwitcher: FC<WorkspaceSwitcherProps> = ({}) => {
                       <IconBuilding className="mr-3" size={28} />
                     )}
 
-                    <div className="text-lg font-semibold">
-                      {workspace.name}
-                    </div>
+                    <div className="text-lg font-semibold">{workspace.name}</div>
                   </Button>
-                )
+                );
               })}
           </div>
         </div>
       </PopoverContent>
     </Popover>
-  )
-}
+  );
+};
