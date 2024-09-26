@@ -20,6 +20,10 @@ export async function middleware(request: NextRequest) {
 
     console.log("Middleware session:", session);
 
+    // Extract the view parameter or other existing query parameters
+    const viewParam = request.nextUrl.searchParams.get("view");
+    const existingQuery = request.nextUrl.search;
+
     // Check if the user is anonymous
     if (session?.data?.session?.user?.is_anonymous) {
       console.log("Anonymous user detected");
@@ -33,13 +37,13 @@ export async function middleware(request: NextRequest) {
 
       if (error || !homeWorkspace) {
         console.error("No workspace found for anonymous user", error);
-        // Redirect anonymous users to welcome page if no workspace
-        return NextResponse.redirect(new URL("/welcome", request.url));
+        // Redirect anonymous users to the welcome page if no workspace
+        return NextResponse.redirect(new URL(`/welcome${existingQuery}`, request.url));
       }
 
-      // If workspace exists, redirect anonymous users to their home workspace
+      // If workspace exists, redirect anonymous users to their home workspace with query parameters
       return NextResponse.redirect(
-        new URL(`/${homeWorkspace.id}/chat`, request.url)
+        new URL(`/${homeWorkspace.id}/chat${existingQuery}`, request.url)
       );
     }
 
@@ -59,9 +63,9 @@ export async function middleware(request: NextRequest) {
         throw new Error(error?.message || "No home workspace found");
       }
 
-      // Redirect logged-in users to their home workspace
+      // Redirect logged-in users to their home workspace with query parameters
       return NextResponse.redirect(
-        new URL(`/${homeWorkspace.id}/chat`, request.url)
+        new URL(`/${homeWorkspace.id}/chat${existingQuery}`, request.url)
       );
     }
 
