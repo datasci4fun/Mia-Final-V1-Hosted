@@ -9,6 +9,7 @@ import { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import { cookies } from "next/headers"
 import { ReactNode } from "react"
+import { VisibilityProvider } from "@/context/branding-context";
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -105,18 +106,20 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers attribute="class" defaultTheme="dark">
-          <TranslationsProvider
-            namespaces={i18nNamespaces}
-            locale={locale}
-            resources={resources}
-          >
-            <Toaster richColors position="top-center" duration={3000} />
-            <div
-              className={`bg-background text-foreground h-dvh flex-col items-center overflow-x-auto ${isWidgetView ? "widget-layout" : "main-app flex"}`}
+          <VisibilityProvider>
+            <TranslationsProvider
+              namespaces={i18nNamespaces}
+              locale={locale}
+              resources={resources}
             >
-              {session ? <GlobalState>{children}</GlobalState> : children}
-            </div>
-          </TranslationsProvider>
+              <Toaster richColors position="top-center" duration={3000} />
+              <div
+                className={`bg-background text-foreground h-dvh flex-col items-center overflow-x-auto ${isWidgetView ? "widget-layout" : "main-app flex"}`}
+              >
+                {session ? <GlobalState>{children}</GlobalState> : children}
+              </div>
+            </TranslationsProvider>
+          </VisibilityProvider>            
         </Providers>
       </body>
     </html>
