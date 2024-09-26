@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default async function Login({
   searchParams,
 }: {
-  searchParams: { message: string };
+  searchParams: { [key: string]: string };
 }) {
   const cookieStore = cookies();
   console.log("Initializing Supabase client with cookie store...");
@@ -47,6 +47,10 @@ export default async function Login({
 
   const session = sessionData?.session;
 
+  // Preserve existing query parameters for all redirects
+  const queryParams = new URLSearchParams(searchParams).toString();
+  const queryString = queryParams ? `?${queryParams}` : '';
+
   if (session) {
     console.log("Session exists for user:", session.user.id);
     const { data: homeWorkspace, error } = await supabase
@@ -69,7 +73,7 @@ export default async function Login({
     }
 
     console.log("Redirecting to home workspace:", homeWorkspace.id);
-    return redirect(`/${homeWorkspace.id}/chat`);
+    return redirect(`/${homeWorkspace.id}/chat${queryString}`);
   } else {
     console.log("No session found, rendering login form...");
   }
@@ -91,7 +95,7 @@ export default async function Login({
 
     if (error) {
       console.error("Error during sign in:", error.message);
-      return redirect(`/login?message=${error.message}`);
+      return redirect(`/login?message=${encodeURIComponent(error.message)}`);
     }
 
     console.log("Sign in successful, fetching home workspace for user:", data.user.id);
@@ -113,7 +117,7 @@ export default async function Login({
     }
 
     console.log("Redirecting to home workspace:", homeWorkspace.id);
-    return redirect(`/${homeWorkspace.id}/chat`);
+    return redirect(`/${homeWorkspace.id}/chat${queryString}`);
   };
 
   const getEnvVarOrEdgeConfigValue = async (name: string) => {

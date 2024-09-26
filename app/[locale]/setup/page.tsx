@@ -83,7 +83,10 @@ export default function SetupPage() {
           const homeWorkspace = await getHomeWorkspaceByUserId(session.user.id);
 
           if (homeWorkspace && homeWorkspace.id) {
-            return router.push(`/${homeWorkspace.id}/chat`);
+            // Preserve query parameters during redirection
+            const searchParams = new URLSearchParams(window.location.search).toString();
+            const queryString = searchParams ? `?${searchParams}` : '';
+            return router.push(`/${homeWorkspace.id}/chat${queryString}`);
           } else {
             throw new Error("Home workspace not found or invalid.");
           }
@@ -144,7 +147,10 @@ export default function SetupPage() {
     setSelectedWorkspace(homeWorkspace!);
     setWorkspaces(workspaces);
 
-    return router.push(`/${homeWorkspace?.id}/chat`);
+    // Preserve query parameters during final redirection
+    const searchParams = new URLSearchParams(window.location.search).toString();
+    const queryString = searchParams ? `?${searchParams}` : '';
+    return router.push(`/${homeWorkspace?.id}/chat${queryString}`);
   };
 
   const renderStep = (stepNum: number) => {
