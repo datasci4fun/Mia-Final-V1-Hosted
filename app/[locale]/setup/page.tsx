@@ -51,12 +51,17 @@ export default function SetupPage() {
   const [perplexityAPIKey, setPerplexityAPIKey] = useState("");
   const [openrouterAPIKey, setOpenrouterAPIKey] = useState("");
 
+  // Declare query parameters once for reuse
+  const searchParams = new URLSearchParams(window.location.search).toString();
+  const queryString = searchParams ? `?${searchParams}` : '';
+
   useEffect(() => {
     (async () => {
       const session = (await supabase.auth.getSession()).data.session;
 
       if (!session) {
-        return router.push("/login");
+        // Append query parameters when redirecting to login
+        return router.push(`/login${queryString}`);
       } else {
         const user = session.user;
 
@@ -84,8 +89,6 @@ export default function SetupPage() {
 
           if (homeWorkspace && homeWorkspace.id) {
             // Preserve query parameters during redirection
-            const searchParams = new URLSearchParams(window.location.search).toString();
-            const queryString = searchParams ? `?${searchParams}` : '';
             return router.push(`/${homeWorkspace.id}/chat${queryString}`);
           } else {
             throw new Error("Home workspace not found or invalid.");
@@ -110,7 +113,8 @@ export default function SetupPage() {
   const handleSaveSetupSetting = async () => {
     const session = (await supabase.auth.getSession()).data.session;
     if (!session) {
-      return router.push("/login");
+      // Append query parameters when redirecting to login
+      return router.push(`/login${queryString}`);
     }
 
     const user = session.user;
@@ -148,8 +152,6 @@ export default function SetupPage() {
     setWorkspaces(workspaces);
 
     // Preserve query parameters during final redirection
-    const searchParams = new URLSearchParams(window.location.search).toString();
-    const queryString = searchParams ? `?${searchParams}` : '';
     return router.push(`/${homeWorkspace?.id}/chat${queryString}`);
   };
 
