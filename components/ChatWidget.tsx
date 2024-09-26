@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/browser-client";
+import { useRouter } from "next/router"; // Import the router
 
 export const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const checkOrLogin = async () => {
@@ -24,6 +26,13 @@ export const ChatWidget = () => {
 
     checkOrLogin();
   }, []);
+
+  // Check if the `view=widget` param is present in the URL
+  useEffect(() => {
+    if (router.query.view === "widget") {
+      setIsOpen(true); // Automatically open the chat if `view=widget`
+    }
+  }, [router.query]);
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
@@ -60,7 +69,7 @@ export const ChatWidget = () => {
           }}
         >
           <iframe
-            src="/chat"
+            src="/chat?view=widget" // Ensure the parameter is passed to the iframe
             style={{ width: "100%", height: "100%", border: "none" }}
             title="Chat Interface"
             aria-label="Chat Interface"
