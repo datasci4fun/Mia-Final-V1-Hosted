@@ -10,11 +10,13 @@ import { FC, HTMLAttributes } from "react"
 import { AnthropicSVG } from "../icons/anthropic-svg"
 import { GoogleSVG } from "../icons/google-svg"
 import { OpenAISVG } from "../icons/openai-svg"
+import { useBranding } from '@/context/branding-context'; // Import the branding context
+
 
 interface ModelIconProps extends HTMLAttributes<HTMLDivElement> {
-  provider: ModelProvider
-  height: number
-  width: number
+  provider: ModelProvider;
+  height: number;
+  width: number;
 }
 
 export const ModelIcon: FC<ModelIconProps> = ({
@@ -23,10 +25,27 @@ export const ModelIcon: FC<ModelIconProps> = ({
   width,
   ...props
 }) => {
-  const { theme } = useTheme()
+  const { theme } = useTheme();
+  const { modelIcon } = useBranding(); // Get the custom model icon from branding
 
+  if (modelIcon) {
+    // If a custom model icon is provided by the brand, use it
+    return (
+      <div
+        className={cn(
+          'rounded-sm',
+          props.className
+        )}
+        style={{ width, height }}
+      >
+        {modelIcon}
+      </div>
+    );
+  }
+
+  // Fallback to existing logic if no custom icon is provided
   switch (provider as ModelProvider) {
-    case "openai":
+    case 'openai':
       return (
         <OpenAISVG
           className={cn(

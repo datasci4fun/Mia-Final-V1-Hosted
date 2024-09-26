@@ -1,6 +1,7 @@
 import { useChatHandler } from "@/components/chat/chat-hooks/use-chat-handler"
 import { ChatbotUIContext } from "@/context/context"
 import { LLM_LIST } from "@/lib/models/llm/llm-list"
+import { useVisibility } from "@/context/branding-context"
 import { cn } from "@/lib/utils"
 import { Tables } from "@/supabase/types"
 import { LLM, LLMID, MessageImage, ModelProvider } from "@/types"
@@ -161,6 +162,8 @@ export const Message: FC<MessageProps> = ({
     }
   > = {}
 
+  const { visibility } = useVisibility()
+  
   const fileSummary = fileItems.reduce((acc, fileItem) => {
     const parentFile = files.find(file => file.id === fileItem.file_id)
     if (parentFile) {
@@ -252,17 +255,18 @@ export const Message: FC<MessageProps> = ({
                   size={ICON_SIZE}
                 />
               )}
-
               <div className="font-semibold">
                 {message.role === "assistant"
-                  ? message.assistant_id
-                    ? assistants.find(
-                        assistant => assistant.id === message.assistant_id
-                      )?.name
-                    : selectedAssistant
-                      ? selectedAssistant?.name
-                      : MODEL_DATA?.modelName
-                  : profile?.display_name ?? profile?.username}
+                  ? visibility.isWhiteLabel && visibility.whiteLabelBotName
+                    ? visibility.whiteLabelBotName // Use white-label bot name if white-labeling is active
+                    : message.assistant_id
+                      ? assistants.find(
+                          assistant => assistant.id === message.assistant_id
+                        )?.name
+                      : selectedAssistant
+                        ? selectedAssistant?.name
+                        : MODEL_DATA?.modelName
+                  : (profile?.display_name ?? profile?.username)}
               </div>
             </div>
           )}
