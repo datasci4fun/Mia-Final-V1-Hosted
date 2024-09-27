@@ -1,3 +1,5 @@
+// C:\Users\blixa\Documents\xampp\git\Mia-Final-V1-Hosted\app\api\chat\openai\route.ts
+
 import { checkApiKey, getServerProfile } from "@/lib/server/server-chat-helpers";
 import { ChatSettings } from "@/types";
 import { OpenAIStream, StreamingTextResponse } from "ai";
@@ -7,6 +9,18 @@ import { ChatCompletionCreateParamsBase } from "openai/resources/chat/completion
 import { supabase } from "@/lib/supabase/browser-client"; // Correct import for the browser client
 
 export const runtime: ServerRuntime = "edge";
+
+// Helper function to parse cookies
+function parseCookies(request: Request) {
+  const cookieHeader = request.headers.get("cookie");
+  if (!cookieHeader) return {};
+  return Object.fromEntries(
+    cookieHeader.split("; ").map((cookie) => {
+      const [key, ...v] = cookie.split("=");
+      return [key, decodeURIComponent(v.join("="))];
+    })
+  );
+}
 
 export async function POST(request: Request) {
   const json = await request.json();
@@ -20,23 +34,23 @@ export async function POST(request: Request) {
     const profile = await getServerProfile();
     checkApiKey(profile.openai_api_key, "OpenAI");
 
-    // Retrieve page data using the correct Supabase client
-    const { data: pageData, error } = await supabase
-      .from("user_page_data")
-      .select(
-        "page_url, page_title, page_description, product_info"
-      )
-      .eq("session_id", sessionId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+    // Parse the cookies to get page_data
+    const cookies = parseCookies(request);
+    let pageData = null;
 
-    if (error) {
-      console.error("Error fetching page data:", error);
+    if (cookies.page_data) {
+      try {
+        pageData = JSON.parse(cookies.page_data);
+        console.log("Parsed page data from cookie:", pageData);
+      } catch (error) {
+        console.error("Failed to parse page_data from cookie:", error);
+      }
+    } else {
+      console.error("page_data cookie not found.");
     }
 
     // Extract product information from the JSON object, if available
-    const productInfo = pageData?.product_info || {};
+    const productInfo = pageData?.product || {};
     const productHandle = productInfo.handle || "N/A";
     const productTitle = productInfo.title || "N/A";
     const productPrice = productInfo.price || "N/A";
@@ -45,7 +59,7 @@ export async function POST(request: Request) {
     const systemMessage = pageData
       ? {
           role: "system",
-          content: `Context: You are assisting a user browsing ${pageData.page_title} (${pageData.page_url}). Description: ${pageData.page_description}. Product Info: Handle: ${productHandle}, Title: ${productTitle}, Price: ${productPrice}`,
+          content: `Context: You are assisting a user browsing ${pageData.title} (${pageData.url}). Description: ${pageData.description}. Product Info: Handle: ${productHandle}, Title: ${productTitle}, Price: ${productPrice}`,
         }
       : null;
 
