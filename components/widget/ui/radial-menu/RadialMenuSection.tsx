@@ -2,7 +2,7 @@
 
 "use client"
 
-import { FC } from "react"
+import { FC, CSSProperties } from "react"
 
 interface RadialMenuSectionProps {
   icon: React.ReactNode
@@ -18,6 +18,7 @@ interface RadialMenuSectionProps {
   onClick: () => void
   onHover: () => void
   isHighlighted: boolean
+  style?: CSSProperties
 }
 
 export const RadialMenuSection: FC<RadialMenuSectionProps> = ({
