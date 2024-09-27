@@ -42,15 +42,31 @@ export const ChatWidget = () => {
         setPageData(event.data.data);
         console.log("Received page data:", event.data.data);
 
-        // Save page data to Supabase
+        // Fetch session data to get the session ID or other identifiers
         const { data, error: sessionError } = await supabase.auth.getSession();
         const session = data?.session;
 
         if (session) {
+          console.log("Session data available:", session);
+
+          // Log the page data that will be inserted
+          console.log("Attempting to insert page data:", {
+            session_id: session.access_token, // Make sure this is the correct identifier
+            url: event.data.data.url,
+            title: event.data.data.title,
+            description: event.data.data.description,
+            keywords: event.data.data.keywords,
+            product_handle: event.data.data.product?.handle,
+            product_title: event.data.data.product?.title,
+            product_price: event.data.data.product?.price,
+            created_at: new Date().toISOString(),
+          });
+
+          // Insert the data into Supabase
           const { error } = await supabase
             .from("user_page_data")
             .insert({
-              session_id: session.access_token, // Use access_token or any unique identifier from session
+              session_id: session.access_token, // Ensure this is the correct identifier
               url: event.data.data.url,
               title: event.data.data.title,
               description: event.data.data.description,
@@ -63,6 +79,8 @@ export const ChatWidget = () => {
 
           if (error) {
             console.error("Error inserting page data:", error);
+          } else {
+            console.log("Page data successfully inserted.");
           }
         } else if (sessionError) {
           console.error("Error fetching session:", sessionError);
