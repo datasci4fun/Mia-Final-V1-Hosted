@@ -165,12 +165,12 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
     setChatSettings({
       model: (searchParams.get("model") ||
         workspace?.default_model ||
-        "gpt-4-1106-preview") as LLMID,
+        "gpt-4o-mini") as LLMID,
       prompt:
         workspace?.default_prompt ||
         "You are a friendly, helpful AI assistant.",
-      temperature: workspace?.default_temperature || 0.5,
-      contextLength: workspace?.default_context_length || 4096,
+      temperature: workspace?.default_temperature || 0.7,
+      contextLength: workspace?.default_context_length || 8192,
       includeProfileContext: workspace?.include_profile_context || true,
       includeWorkspaceInstructions:
         workspace?.include_workspace_instructions || true,
