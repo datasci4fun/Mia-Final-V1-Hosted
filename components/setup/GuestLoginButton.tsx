@@ -10,7 +10,7 @@ function debounce(func: (...args: any[]) => void, timeout = 300) {
     clearTimeout(timer);
     timer = setTimeout(() => {
       func(...args);
-    }, timeout); // Removed 'this' context
+    }, timeout);
   };
 }
 
@@ -37,18 +37,20 @@ export const GuestLoginButton = () => {
         await supabase.auth.setSession(data.session);
       }
 
-      if (data.workspaceUrl) {
+      if (typeof window !== 'undefined' && data.workspaceUrl) {
         window.location.href = data.workspaceUrl;
       }
     } catch (error: any) {
       console.error("Error during guest login:", error);
 
-      // Preserve existing query parameters
-      const currentParams = new URLSearchParams(window.location.search);
-      currentParams.set("message", error.message);
+      if (typeof window !== 'undefined') {
+        // Preserve existing query parameters
+        const currentParams = new URLSearchParams(window.location.search);
+        currentParams.set("message", error.message);
 
-      // Redirect with preserved parameters and error message
-      window.location.href = `/login?${currentParams.toString()}`;
+        // Redirect with preserved parameters and error message
+        window.location.href = `/login?${currentParams.toString()}`;
+      }
     } finally {
       setLoading(false);
     }
