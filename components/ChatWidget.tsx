@@ -56,16 +56,48 @@ export const ChatWidget = () => {
     setIsOpen(!isOpen);
   };
 
-  // Function to send page data to the chat iframe
-  const sendPageDataToIframe = (iframe: HTMLIFrameElement) => {
-    if (pageData && iframe.contentWindow) {
-      iframe.contentWindow.postMessage({ type: "PAGE_DATA", data: pageData }, "*");
-      console.log("Page data sent to iframe:", pageData);
+  // Function to send page data to the chat API
+  const sendChatMessage = async (messageContent: string) => {
+    const payload = {
+      chatSettings: {
+        model: "gpt-4-turbo", // Example, adjust based on your requirements
+        temperature: 0.5,
+      },
+      messages: [
+        {
+          role: "user",
+          content: messageContent,
+        },
+        {
+          role: "system",
+          content: `Page Data: ${JSON.stringify(pageData)}`, // Include page data
+        },
+      ],
+    };
+
+    try {
+      const response = await fetch("/api/chat/openai/route", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
+
+      const data = await response.json();
+      console.log("Chat response:", data);
+    } catch (error) {
+      console.error("Error sending chat message:", error);
     }
   };
 
-  // Set up the iframe src including the view=widget parameter
-  const iframeSrc = `/chat?view=widget`;
+  const handleChatSubmit = () => {
+    sendChatMessage("User message here"); // Example message
+  };
 
   return (
     <div style={{ position: "fixed", bottom: "20px", right: "20px" }}>
@@ -98,12 +130,12 @@ export const ChatWidget = () => {
           }}
         >
           <iframe
-            src={iframeSrc} // Static src, but data is sent after loading
+            src="/chat?view=widget"
             style={{ width: "100%", height: "100%", border: "none" }}
             title="Chat Interface"
             aria-label="Chat Interface"
-            onLoad={(e) => sendPageDataToIframe(e.currentTarget as HTMLIFrameElement)} // Correct type casting
           ></iframe>
+          <button onClick={handleChatSubmit}>Send to Chat</button>
         </div>
       )}
     </div>
