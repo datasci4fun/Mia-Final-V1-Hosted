@@ -122,29 +122,19 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             <RadialMenuSection
               icon={<IconMessageCircle size={24} />}
               label="Chats"
-              className="section"
+              className="section section-1"
               onHover={() => handleSectionHover("chats")}
               isHighlighted={highlightedSection === "chats"}
               onClick={() => handleOverlayToggle("chats")}
-              style={{
-                top: "10%", // Adjust positioning as needed
-                left: "50%",
-                transform: "translateX(-50%)",
-              }}
             />
 
             <RadialMenuSection
               icon={<IconFile size={24} />}
               label="Files"
-              className="section"
+              className="section section-2"
               onHover={() => handleSectionHover("files")}
               isHighlighted={highlightedSection === "files"}
               onClick={() => handleOverlayToggle("files")}
-              style={{
-                top: "50%",
-                right: "10%",
-                transform: "translateY(-50%)",
-              }}
             />
 {/*
             <RadialMenuSection
@@ -159,15 +149,10 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             <RadialMenuSection
               icon={<IconTag size={24} />}
               label="Prompts"
-              className="section"
+              className="section section-3"
               onHover={() => handleSectionHover("prompts")}
               isHighlighted={highlightedSection === "prompts"}
               onClick={() => handleOverlayToggle("prompts")}
-              style={{
-                bottom: "10%",
-                left: "50%",
-                transform: "translateX(-50%)",
-              }}
             />
 {/*
             <RadialMenuSection
@@ -191,15 +176,10 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             <RadialMenuSection
               icon={<IconTool size={24} />}
               label="Tools"
-              className="section"
+              className="section section-4"
               onHover={() => handleSectionHover("tools")}
               isHighlighted={highlightedSection === "tools"}
               onClick={() => handleOverlayToggle("tools")}
-              style={{
-                top: "50%",
-                left: "10%",
-                transform: "translateY(-50%)",
-              }}
             />
 
             {/*

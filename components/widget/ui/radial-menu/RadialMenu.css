@@ -81,18 +81,19 @@
   }
   
   .radial-menu {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
     position: relative;
     width: 300px;
     height: 300px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
   }
   
   .section {
     position: absolute;
-    width: 60px; /* Adjust size as needed */
-    height: 60px;
+    width: 50px; /* Adjust size if needed */
+    height: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -101,28 +102,25 @@
   }
   
   /* Adjust each section to their correct positions around the radial center */
-  .radial-menu .section.section-1 {
-    top: 10%;
+  .section-1 {
+    top: 10%; /* Adjust as needed */
     left: 50%;
     transform: translateX(-50%);
   }
   
-  .radial-menu .section.section-2 {
-    top: 50%;
+  .section-2 {
     right: 10%;
-    transform: translateY(-50%);
+    top: 45%;
   }
   
-  .radial-menu .section.section-3 {
+  .section-3 {
     bottom: 10%;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 45%;
   }
   
-  .radial-menu .section.section-4 {
-    top: 50%;
-    left: 10%;
-    transform: translateY(-50%);
+  .section-4 {
+    left: 13%;
+    top: 45%;
   }
   
   .wedge-style {
