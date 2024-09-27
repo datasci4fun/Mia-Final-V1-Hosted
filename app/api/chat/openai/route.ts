@@ -6,7 +6,6 @@ import { OpenAIStream, StreamingTextResponse } from "ai";
 import { ServerRuntime } from "next";
 import OpenAI from "openai";
 import { ChatCompletionCreateParamsBase } from "openai/resources/chat/completions.mjs";
-import { supabase } from "@/lib/supabase/browser-client"; // Correct import for the browser client
 
 export const runtime: ServerRuntime = "edge";
 
@@ -26,6 +25,11 @@ function parseCookies(request: Request) {
   );
 }
 
+interface Variant {
+  title: string;
+  price: string;
+}
+
 export async function POST(request: Request) {
   const json = await request.json();
   const { chatSettings, messages, sessionId } = json as {
@@ -38,32 +42,36 @@ export async function POST(request: Request) {
     const profile = await getServerProfile();
     checkApiKey(profile.openai_api_key, "OpenAI");
 
-    // Parse the cookies to get page_data
+    // Parse cookies to get product data
     const cookies = parseCookies(request);
-    let pageData = null;
+    let productData: { handle: string; title: string; variants: Variant[] } | null = null;
 
-    if (cookies.page_data) {
+    if (cookies.product_data) {
       try {
-        pageData = JSON.parse(cookies.page_data);
-        console.log("Parsed page data from cookie:", pageData);
+        productData = JSON.parse(cookies.product_data);
+        console.log("Parsed product data from cookie:", productData);
       } catch (error) {
-        console.error("Failed to parse page_data from cookie:", error);
+        console.error("Failed to parse product_data from cookie:", error);
       }
     } else {
-      console.error("page_data cookie not found.");
+      console.error("product_data cookie not found.");
     }
 
     // Extract product information from the JSON object, if available
-    const productInfo = pageData?.product || {};
-    const productHandle = productInfo.handle || "N/A";
-    const productTitle = productInfo.title || "N/A";
-    const productPrice = productInfo.price || "N/A";
+    const productHandle = productData?.handle || "N/A";
+    const productTitle = productData?.title || "N/A";
+    const productVariants = productData?.variants || [];
+
+    // Format the product variants information for the system message
+    const formattedVariants = productVariants
+      .map((variant: Variant) => `Variant: ${variant.title}, Price: ${variant.price}`)
+      .join("; ");
 
     // Append page data to system message if available
-    const systemMessage = pageData
+    const systemMessage = productData
       ? {
           role: "system",
-          content: `Context: You are assisting a user browsing ${pageData.title} (${pageData.url}). Description: ${pageData.description}. Product Info: Handle: ${productHandle}, Title: ${productTitle}, Price: ${productPrice}`,
+          content: `Context: You are assisting a user browsing ${productTitle}. Handle: ${productHandle}. ${formattedVariants}`,
         }
       : null;
 
