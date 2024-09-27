@@ -1,3 +1,4 @@
+// middleware.ts
 import { createClient } from "@/lib/supabase/middleware";
 import { i18nRouter } from "next-i18n-router";
 import { NextResponse, type NextRequest } from "next/server";
@@ -16,57 +17,65 @@ export async function middleware(request: NextRequest) {
     const { supabase, response } = createClient(request);
 
     // Get the session
-    const session = await supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getSession();
 
-    console.log("Middleware session:", session);
+    if (error) {
+      console.error("Error fetching session in middleware:", error);
+    } else if (data?.session) {
+      const session = data.session;
+      console.log("Middleware session:", session);
 
-    // Extract the view parameter or other existing query parameters
-    const viewParam = request.nextUrl.searchParams.get("view");
-    const existingQuery = request.nextUrl.search;
+      // Attach session info to response headers to be used globally
+      response.headers.set("x-session-data", JSON.stringify(session));
 
-    // Check if the user is anonymous
-    if (session?.data?.session?.user?.is_anonymous) {
-      console.log("Anonymous user detected");
+      // Extract the view parameter or other existing query parameters
+      const viewParam = request.nextUrl.searchParams.get("view");
+      const existingQuery = request.nextUrl.search;
 
-      const { data: homeWorkspace, error } = await supabase
-        .from("workspaces")
-        .select("*")
-        .eq("user_id", session.data.session?.user.id)
-        .eq("is_home", true)
-        .single();
+      // Check if the user is anonymous
+      if (session.user?.is_anonymous) {
+        console.log("Anonymous user detected");
 
-      if (error || !homeWorkspace) {
-        console.error("No workspace found for anonymous user", error);
-        // Redirect anonymous users to the welcome page if no workspace
-        return NextResponse.redirect(new URL(`/welcome${existingQuery}`, request.url));
+        const { data: homeWorkspace, error } = await supabase
+          .from("workspaces")
+          .select("*")
+          .eq("user_id", session.user.id)
+          .eq("is_home", true)
+          .single();
+
+        if (error || !homeWorkspace) {
+          console.error("No workspace found for anonymous user", error);
+          // Redirect anonymous users to the welcome page if no workspace
+          return NextResponse.redirect(new URL(`/welcome${existingQuery}`, request.url));
+        }
+
+        // If workspace exists, redirect anonymous users to their home workspace with query parameters
+        return NextResponse.redirect(
+          new URL(`/${homeWorkspace.id}/chat${existingQuery}`, request.url)
+        );
       }
 
-      // If workspace exists, redirect anonymous users to their home workspace with query parameters
-      return NextResponse.redirect(
-        new URL(`/${homeWorkspace.id}/chat${existingQuery}`, request.url)
-      );
-    }
+      // If the user is logged in and visiting the root page, redirect them to their workspace
+      const redirectToChat = request.nextUrl.pathname === "/";
 
-    // If the user is logged in and visiting the root page, redirect them to their workspace
-    const redirectToChat = session && request.nextUrl.pathname === "/";
+      if (redirectToChat) {
+        const { data: homeWorkspace, error } = await supabase
+          .from("workspaces")
+          .select("*")
+          .eq("user_id", session.user.id)
+          .eq("is_home", true)
+          .single();
 
-    if (redirectToChat) {
-      const { data: homeWorkspace, error } = await supabase
-        .from("workspaces")
-        .select("*")
-        .eq("user_id", session.data.session?.user.id)
-        .eq("is_home", true)
-        .single();
+        if (error || !homeWorkspace) {
+          console.error("No home workspace found for logged-in user", error);
+          throw new Error(error?.message || "No home workspace found");
+        }
 
-      if (!homeWorkspace) {
-        console.error("No home workspace found for logged-in user", error);
-        throw new Error(error?.message || "No home workspace found");
+        // Redirect logged-in users to their home workspace with query parameters
+        return NextResponse.redirect(
+          new URL(`/${homeWorkspace.id}/chat${existingQuery}`, request.url)
+        );
       }
-
-      // Redirect logged-in users to their home workspace with query parameters
-      return NextResponse.redirect(
-        new URL(`/${homeWorkspace.id}/chat${existingQuery}`, request.url)
-      );
     }
 
     return response;
