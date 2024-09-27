@@ -1393,6 +1393,56 @@ export type Database = {
           },
         ]
       }
+      user_page_data: {
+        Row: {
+          id: string
+          session_id: string
+          url: string
+          title: string
+          description: string | null
+          keywords: string | null
+          product_handle: string | null
+          product_title: string | null
+          product_price: string | null
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          url: string
+          title: string
+          description?: string | null
+          keywords?: string | null
+          product_handle?: string | null
+          product_title?: string | null
+          product_price?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          url?: string
+          title?: string
+          description?: string | null
+          keywords?: string | null
+          product_handle?: string | null
+          product_title?: string | null
+          product_price?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_page_data_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       workspaces: {
         Row: {
           created_at: string

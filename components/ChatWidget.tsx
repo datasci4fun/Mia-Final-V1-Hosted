@@ -37,14 +37,36 @@ export const ChatWidget = () => {
 
   // Listen for page data sent from page-data-collector.js script
   useEffect(() => {
-    const handlePageData = (event: MessageEvent) => {
-      // Check if the message is of type 'PAGE_DATA'
+    const handlePageData = async (event: MessageEvent) => {
       if (event.data.type === "PAGE_DATA") {
         setPageData(event.data.data);
         console.log("Received page data:", event.data.data);
 
-        // Store page data in session storage for future access
-        sessionStorage.setItem("currentPageData", JSON.stringify(event.data.data));
+        // Save page data to Supabase
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        const session = data?.session;
+
+        if (session) {
+          const { error } = await supabase
+            .from("user_page_data")
+            .insert({
+              session_id: session.access_token, // Use access_token or any unique identifier from session
+              url: event.data.data.url,
+              title: event.data.data.title,
+              description: event.data.data.description,
+              keywords: event.data.data.keywords,
+              product_handle: event.data.data.product?.handle,
+              product_title: event.data.data.product?.title,
+              product_price: event.data.data.product?.price,
+              created_at: new Date().toISOString(),
+            });
+
+          if (error) {
+            console.error("Error inserting page data:", error);
+          }
+        } else if (sessionError) {
+          console.error("Error fetching session:", sessionError);
+        }
       }
     };
 
@@ -59,7 +81,6 @@ export const ChatWidget = () => {
     setIsOpen(!isOpen);
   };
 
-  // Build the iframe source URL, including the view=widget parameter
   const iframeSrc = `/chat?view=widget`;
 
   return (
@@ -103,12 +124,3 @@ export const ChatWidget = () => {
     </div>
   );
 };
-
-// Attach the component to the window object
-declare global {
-  interface Window {
-    ChatWidget: typeof ChatWidget;
-  }
-}
-
-window.ChatWidget = ChatWidget;
