@@ -36,6 +36,8 @@ export const ChatWidget = () => {
       const session = getSessionFromCookie();
       if (!session) {
         console.error("Session could not be initialized from cookie.");
+      } else {
+        console.log("Session initialized:", session);
       }
     };
 
@@ -55,18 +57,25 @@ export const ChatWidget = () => {
       if (event.data.type === "PAGE_DATA") {
         setPageData(event.data.data);
         console.log("Received page data:", event.data.data);
-
-        // Retrieve the session data using the cookie
+    
+        // Retrieve the session data using the getSessionData function
         const session = getSessionFromCookie();
-
-        if (session) {
+    
+        if (session && session.user && session.user.id) {
           const userId = session.user.id; // Use user_id from session
+          const sessionId = session.access_token; // Use session_id from session
+    
+          if (!userId || !sessionId) {
+            console.error("Invalid session data: user_id or session_id is undefined.");
+            return;
+          }
+    
           console.log("Session data available:", session);
-
+    
           // Log the page data that will be inserted
           console.log("Attempting to insert page data:", {
             user_id: userId,
-            session_id: session.access_token,
+            session_id: sessionId,
             url: event.data.data.url,
             title: event.data.data.title,
             description: event.data.data.description,
@@ -77,13 +86,13 @@ export const ChatWidget = () => {
             },
             created_at: new Date().toISOString(),
           });
-
+    
           // Insert the data into Supabase
           const { error } = await supabase
             .from("user_page_data")
             .insert({
-              user_id: userId, // Use the user_id to identify the session
-              session_id: session.access_token,
+              user_id: userId,
+              session_id: sessionId,
               page_url: event.data.data.url,
               page_title: event.data.data.title,
               page_description: event.data.data.description,
@@ -94,19 +103,44 @@ export const ChatWidget = () => {
               },
               created_at: new Date().toISOString(),
             });
-
+    
           if (error) {
             console.error("Error inserting page data:", error);
           } else {
             console.log("Page data successfully inserted.");
           }
         } else {
-          console.error("Session not available.");
+          console.error("Session not available or user_id/session_id is missing.");
         }
       }
     };
 
     window.addEventListener("message", handlePageData);
+
+    // Add a basic POST request with manual data to test table insertion
+    const manualInsert = async () => {
+      try {
+        console.log("Attempting manual data insert for testing...");
+        const { error } = await supabase.from("user_page_data").insert({
+          user_id: "25348352-ebd4-4ebd-aba6-0aa1333b9c2e", // Replace with a valid UUID
+          session_id: "5df4af32-725c-4052-b2e0-aa919b83f205", // Replace with a valid UUID
+          page_url: "https://example.com/manual-insert",
+          page_title: "Manual Insert Test",
+          page_description: "This is a manually inserted test entry.",
+          product_info: { handle: "test-product", title: "Test Product", price: "99.99" },
+          created_at: new Date().toISOString(),
+        });
+        if (error) {
+          console.error("Manual data insert error:", error);
+        } else {
+          console.log("Manual data insert successful.");
+        }
+      } catch (err) {
+        console.error("Error during manual data insert:", err);
+      }
+    };
+
+    manualInsert();
 
     return () => {
       window.removeEventListener("message", handlePageData);
