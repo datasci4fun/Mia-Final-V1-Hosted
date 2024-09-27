@@ -122,11 +122,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             <RadialMenuSection
               icon={<IconMessageCircle size={24} />}
               label="Chats"
-              position={{
-                top: "10%",
-                left: "50%",
-                transform: "translateX(-50%)"
-              }}
+              className="section section-1"
               onHover={() => handleSectionHover("chats")}
               isHighlighted={highlightedSection === "chats"}
               onClick={() => handleOverlayToggle("chats")}
@@ -135,7 +131,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             <RadialMenuSection
               icon={<IconFile size={24} />}
               label="Files"
-              position={{ top: "45%", right: "10%" }}
+              className="section section-2"
               onHover={() => handleSectionHover("files")}
               isHighlighted={highlightedSection === "files"}
               onClick={() => handleOverlayToggle("files")}
@@ -153,7 +149,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             <RadialMenuSection
               icon={<IconTag size={24} />}
               label="Prompts"
-              position={{ bottom: "10%", left: "45%" }}
+              className="section section-3"
               onHover={() => handleSectionHover("prompts")}
               isHighlighted={highlightedSection === "prompts"}
               onClick={() => handleOverlayToggle("prompts")}
@@ -180,11 +176,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
             <RadialMenuSection
               icon={<IconTool size={24} />}
               label="Tools"
-              position={{
-                top: "45%",
-                left: "13%",
-                transform: "translateX(-50%)"
-              }}
+              className="section section-4"
               onHover={() => handleSectionHover("tools")}
               isHighlighted={highlightedSection === "tools"}
               onClick={() => handleOverlayToggle("tools")}

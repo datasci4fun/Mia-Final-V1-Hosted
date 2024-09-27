@@ -80,9 +80,47 @@
     --color: #5f27cd;
   }
   
+  .radial-menu {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 300px;
+    height: 300px;
+  }
+  
   .section {
-    border-radius: 50%; /* Default to circular style */
-    transition: all 0.3s ease;
+    position: absolute;
+    width: 50px; /* Adjust size if needed */
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  /* Adjust each section to their correct positions around the radial center */
+  .section-1 {
+    top: 10%; /* Adjust as needed */
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .section-2 {
+    right: 10%;
+    top: 45%;
+  }
+  
+  .section-3 {
+    bottom: 10%;
+    left: 45%;
+  }
+  
+  .section-4 {
+    left: 13%;
+    top: 45%;
   }
   
   .wedge-style {
