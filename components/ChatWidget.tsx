@@ -2,26 +2,26 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/browser-client";
 import { useRouter } from "next/router";
 
-// Function to parse the session cookie and extract the session data
-const getSessionFromCookie = () => {
+// Function to dynamically identify and extract the session data from the cookie
+const getSessionFromDynamicCookie = () => {
   try {
-    // Assuming your cookie name is 'sb-access-token'
+    // Find the cookie that matches the pattern 'sb-<random_string>-auth-token'
     const sessionCookie = document.cookie
       .split("; ")
-      .find((row) => row.startsWith("sb-access-token="));
-    
+      .find((row) => /sb-.*-auth-token=/.test(row));
+
     if (!sessionCookie) {
       console.error("Session cookie not found.");
       return null;
     }
 
-    // Parse the JSON from the cookie value
+    // Extract and parse the JSON session data from the cookie
     const sessionData = JSON.parse(decodeURIComponent(sessionCookie.split("=")[1]));
-    console.log("Parsed session from cookie:", sessionData);
+    console.log("Parsed session from dynamic cookie:", sessionData);
 
     return sessionData;
   } catch (error) {
-    console.error("Error parsing session from cookie:", error);
+    console.error("Error parsing session from dynamic cookie:", error);
     return null;
   }
 };
@@ -33,7 +33,7 @@ export const ChatWidget = () => {
 
   useEffect(() => {
     const initializeSession = () => {
-      const session = getSessionFromCookie();
+      const session = getSessionFromDynamicCookie();
       if (!session) {
         console.error("Session could not be initialized from cookie.");
       } else {
@@ -48,6 +48,7 @@ export const ChatWidget = () => {
   useEffect(() => {
     if (router.query.view === "widget") {
       setIsOpen(true); // Automatically open the chat if `view=widget`
+      console.log("Widget view detected. Chat opened automatically.");
     }
   }, [router.query]);
 
@@ -57,28 +58,28 @@ export const ChatWidget = () => {
       if (event.data.type === "PAGE_DATA") {
         setPageData(event.data.data);
         console.log("Received page data:", event.data.data);
-    
-        // Retrieve the session data using the getSessionData function
-        const session = getSessionFromCookie();
-    
+
+        // Retrieve the session data using the getSessionFromDynamicCookie function
+        const session = getSessionFromDynamicCookie();
+
         if (session && session.user && session.user.id) {
           const userId = session.user.id; // Use user_id from session
           const sessionId = session.access_token; // Use session_id from session
-    
+
           if (!userId || !sessionId) {
             console.error("Invalid session data: user_id or session_id is undefined.");
             return;
           }
-    
+
           console.log("Session data available:", session);
-    
+
           // Log the page data that will be inserted
           console.log("Attempting to insert page data:", {
             user_id: userId,
             session_id: sessionId,
-            url: event.data.data.url,
-            title: event.data.data.title,
-            description: event.data.data.description,
+            page_url: event.data.data.url,
+            page_title: event.data.data.title,
+            page_description: event.data.data.description,
             product_info: {
               handle: event.data.data.product?.handle,
               title: event.data.data.product?.title,
@@ -86,28 +87,32 @@ export const ChatWidget = () => {
             },
             created_at: new Date().toISOString(),
           });
-    
+
           // Insert the data into Supabase
-          const { error } = await supabase
-            .from("user_page_data")
-            .insert({
-              user_id: userId,
-              session_id: sessionId,
-              page_url: event.data.data.url,
-              page_title: event.data.data.title,
-              page_description: event.data.data.description,
-              product_info: {
-                handle: event.data.data.product?.handle,
-                title: event.data.data.product?.title,
-                price: event.data.data.product?.price,
-              },
-              created_at: new Date().toISOString(),
-            });
-    
-          if (error) {
-            console.error("Error inserting page data:", error);
-          } else {
-            console.log("Page data successfully inserted.");
+          try {
+            const { data, error } = await supabase
+              .from("user_page_data")
+              .insert({
+                user_id: userId,
+                session_id: sessionId,
+                page_url: event.data.data.url,
+                page_title: event.data.data.title,
+                page_description: event.data.data.description,
+                product_info: {
+                  handle: event.data.data.product?.handle,
+                  title: event.data.data.product?.title,
+                  price: event.data.data.product?.price,
+                },
+                created_at: new Date().toISOString(),
+              });
+
+            if (error) {
+              console.error("Error inserting page data:", error);
+            } else {
+              console.log("Page data successfully inserted:", data);
+            }
+          } catch (insertError) {
+            console.error("Error during page data insert:", insertError);
           }
         } else {
           console.error("Session not available or user_id/session_id is missing.");
@@ -121,7 +126,7 @@ export const ChatWidget = () => {
     const manualInsert = async () => {
       try {
         console.log("Attempting manual data insert for testing...");
-        const { error } = await supabase.from("user_page_data").insert({
+        const { data, error } = await supabase.from("user_page_data").insert({
           user_id: "25348352-ebd4-4ebd-aba6-0aa1333b9c2e", // Replace with a valid UUID
           session_id: "5df4af32-725c-4052-b2e0-aa919b83f205", // Replace with a valid UUID
           page_url: "https://example.com/manual-insert",
@@ -133,7 +138,7 @@ export const ChatWidget = () => {
         if (error) {
           console.error("Manual data insert error:", error);
         } else {
-          console.log("Manual data insert successful.");
+          console.log("Manual data insert successful:", data);
         }
       } catch (err) {
         console.error("Error during manual data insert:", err);
@@ -153,7 +158,7 @@ export const ChatWidget = () => {
 
   const iframeSrc = `/chat?view=widget`;
 
-  return (
+    return (
     <div style={{ position: "fixed", bottom: "20px", right: "20px" }}>
       <button
         onClick={toggleChat}
