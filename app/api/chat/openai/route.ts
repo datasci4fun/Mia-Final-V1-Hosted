@@ -13,7 +13,11 @@ export const runtime: ServerRuntime = "edge";
 // Helper function to parse cookies
 function parseCookies(request: Request) {
   const cookieHeader = request.headers.get("cookie");
-  if (!cookieHeader) return {};
+  if (!cookieHeader) {
+    console.log("No cookies found in the request headers.");
+    return {};
+  }
+  console.log("Cookies received:", cookieHeader);
   return Object.fromEntries(
     cookieHeader.split("; ").map((cookie) => {
       const [key, ...v] = cookie.split("=");
