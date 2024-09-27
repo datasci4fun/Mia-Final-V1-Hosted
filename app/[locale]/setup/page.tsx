@@ -51,9 +51,11 @@ export default function SetupPage() {
   const [perplexityAPIKey, setPerplexityAPIKey] = useState("");
   const [openrouterAPIKey, setOpenrouterAPIKey] = useState("");
 
-  // Declare query parameters once for reuse
-  const searchParams = new URLSearchParams(window.location.search).toString();
-  const queryString = searchParams ? `?${searchParams}` : '';
+  // Declare query parameters once for reuse, only on the client side
+  const queryString =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).toString()
+      : "";
 
   useEffect(() => {
     (async () => {
@@ -61,7 +63,7 @@ export default function SetupPage() {
 
       if (!session) {
         // Append query parameters when redirecting to login
-        return router.push(`/login${queryString}`);
+        return router.push(`/login${queryString ? `?${queryString}` : ""}`);
       } else {
         const user = session.user;
 
@@ -89,14 +91,14 @@ export default function SetupPage() {
 
           if (homeWorkspace && homeWorkspace.id) {
             // Preserve query parameters during redirection
-            return router.push(`/${homeWorkspace.id}/chat${queryString}`);
+            return router.push(`/${homeWorkspace.id}/chat${queryString ? `?${queryString}` : ""}`);
           } else {
             throw new Error("Home workspace not found or invalid.");
           }
         }
       }
     })();
-  }, []);
+  }, [queryString]);
 
   const handleShouldProceed = (proceed: boolean) => {
     if (proceed) {
@@ -114,7 +116,7 @@ export default function SetupPage() {
     const session = (await supabase.auth.getSession()).data.session;
     if (!session) {
       // Append query parameters when redirecting to login
-      return router.push(`/login${queryString}`);
+      return router.push(`/login${queryString ? `?${queryString}` : ""}`);
     }
 
     const user = session.user;
@@ -152,7 +154,7 @@ export default function SetupPage() {
     setWorkspaces(workspaces);
 
     // Preserve query parameters during final redirection
-    return router.push(`/${homeWorkspace?.id}/chat${queryString}`);
+    return router.push(`/${homeWorkspace?.id}/chat${queryString ? `?${queryString}` : ""}`);
   };
 
   const renderStep = (stepNum: number) => {
