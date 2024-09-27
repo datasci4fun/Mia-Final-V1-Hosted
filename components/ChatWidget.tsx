@@ -2,30 +2,52 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/browser-client";
 import { useRouter } from "next/router";
 
+// Function to retrieve the current session data
+const getSessionData = async () => {
+  try {
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error("Error fetching session:", error.message);
+      return null;
+    }
+
+    const session = data.session;
+
+    if (session) {
+      console.log("Session retrieved:", session);
+      return session;
+    } else {
+      console.log("No session found, signing in anonymously.");
+      const { error: signInError } = await supabase.auth.signInAnonymously();
+      if (signInError) {
+        console.error("Anonymous login failed:", signInError.message);
+        return null;
+      }
+      // Retry getting the session after anonymous sign-in
+      const retry = await supabase.auth.getSession();
+      return retry.data.session;
+    }
+  } catch (err) {
+    console.error("An unexpected error occurred:", err);
+    return null;
+  }
+};
+
 export const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [pageData, setPageData] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
-    const checkOrLogin = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        if (!session) {
-          const { error } = await supabase.auth.signInAnonymously();
-          if (error) {
-            console.error("Anonymous login failed:", error.message);
-          }
-        }
-      } catch (error) {
-        console.error("Error during session check or login:", error);
+    const initializeSession = async () => {
+      const session = await getSessionData();
+      if (!session) {
+        console.error("Session could not be initialized.");
       }
     };
 
-    checkOrLogin();
+    initializeSession();
   }, []);
 
   // Check if the `view=widget` param is present in the URL
@@ -42,16 +64,15 @@ export const ChatWidget = () => {
         setPageData(event.data.data);
         console.log("Received page data:", event.data.data);
 
-        // Fetch session data to get the session ID or other identifiers
-        const { data, error: sessionError } = await supabase.auth.getSession();
-        const session = data?.session;
+        // Retrieve the session data using the getSessionData function
+        const session = await getSessionData();
 
         if (session) {
           console.log("Session data available:", session);
 
           // Log the page data that will be inserted
           console.log("Attempting to insert page data:", {
-            session_id: session.access_token, // Make sure this is the correct identifier
+            session_id: session.access_token, // Ensure this is the correct identifier
             url: event.data.data.url,
             title: event.data.data.title,
             description: event.data.data.description,
@@ -82,8 +103,8 @@ export const ChatWidget = () => {
           } else {
             console.log("Page data successfully inserted.");
           }
-        } else if (sessionError) {
-          console.error("Error fetching session:", sessionError);
+        } else {
+          console.error("Session not available.");
         }
       }
     };
