@@ -6,7 +6,7 @@ import { getHomeWorkspaceByUserId, getWorkspacesByUserId } from "@/db/workspaces
 import { fetchHostedModels, fetchOpenRouterModels } from "@/lib/models/fetch-models";
 import { supabase } from "@/lib/supabase/browser-client";
 import { TablesUpdate } from "@/supabase/types";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { APIStep } from "../../../components/setup/api-step";
 import { FinishStep } from "../../../components/setup/finish-step";
@@ -25,6 +25,7 @@ export default function SetupPage() {
   } = useContext(ChatbotUIContext);
 
   const router = useRouter();
+  const searchParams = useSearchParams(); // Use useSearchParams hook to access query parameters
 
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
@@ -51,19 +52,16 @@ export default function SetupPage() {
   const [perplexityAPIKey, setPerplexityAPIKey] = useState("");
   const [openrouterAPIKey, setOpenrouterAPIKey] = useState("");
 
-  // Declare query parameters once for reuse, only on the client side
-  const queryString =
-    typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search).toString()
-      : "";
+  // Extract query string with searchParams
+  const queryString = searchParams.toString() ? `?${searchParams.toString()}` : '';
 
   useEffect(() => {
     (async () => {
       const session = (await supabase.auth.getSession()).data.session;
 
       if (!session) {
-        // Append query parameters when redirecting to login
-        return router.push(`/login${queryString ? `?${queryString}` : ""}`);
+        // Redirect to login with query parameters preserved
+        return router.push(`/login${queryString}`);
       } else {
         const user = session.user;
 
@@ -90,15 +88,15 @@ export default function SetupPage() {
           const homeWorkspace = await getHomeWorkspaceByUserId(session.user.id);
 
           if (homeWorkspace && homeWorkspace.id) {
-            // Preserve query parameters during redirection
-            return router.push(`/${homeWorkspace.id}/chat${queryString ? `?${queryString}` : ""}`);
+            // Redirect to the chat with query parameters preserved
+            return router.push(`/${homeWorkspace.id}/chat${queryString}`);
           } else {
             throw new Error("Home workspace not found or invalid.");
           }
         }
       }
     })();
-  }, [queryString]);
+  }, [queryString, router]);
 
   const handleShouldProceed = (proceed: boolean) => {
     if (proceed) {
@@ -115,14 +113,15 @@ export default function SetupPage() {
   const handleSaveSetupSetting = async () => {
     const session = (await supabase.auth.getSession()).data.session;
     if (!session) {
-      // Append query parameters when redirecting to login
-      return router.push(`/login${queryString ? `?${queryString}` : ""}`);
+      // Redirect to login with query parameters preserved
+      return router.push(`/login${queryString}`);
     }
 
     const user = session.user;
     const profile = await getProfileByUserId(user.id);
 
     const updateProfilePayload: TablesUpdate<"profiles"> = {
+
       ...profile,
       has_onboarded: true,
       display_name: displayName,
@@ -153,9 +152,10 @@ export default function SetupPage() {
     setSelectedWorkspace(homeWorkspace!);
     setWorkspaces(workspaces);
 
-    // Preserve query parameters during final redirection
-    return router.push(`/${homeWorkspace?.id}/chat${queryString ? `?${queryString}` : ""}`);
+    // Redirect to the chat with query parameters preserved
+    return router.push(`/${homeWorkspace?.id}/chat${queryString}`);
   };
+
 
   const renderStep = (stepNum: number) => {
     switch (stepNum) {
