@@ -47,3 +47,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to process the request." }, { status: 500 });
   }
 }
+
+// Define the GET handler to display a message when accessed directly
+export async function GET() {
+  // This message will be displayed when someone accesses the route directly via a GET request
+  return NextResponse.json(
+    {
+      message: "This endpoint is intended for POST requests only. Please use a POST request to submit data.",
+    },
+    { status: 200 }
+  );
+}
