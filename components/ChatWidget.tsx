@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/browser-client";
-import { useRouter } from "next/router"; // Import the router
+import { useRouter } from "next/router";
 
 export const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [pageData, setPageData] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -34,9 +35,31 @@ export const ChatWidget = () => {
     }
   }, [router.query]);
 
+  // Listen for page data sent from page-data-collector.js script
+  useEffect(() => {
+    const handlePageData = (event: MessageEvent) => {
+      // Check if the message is of type 'PAGE_DATA'
+      if (event.data.type === 'PAGE_DATA') {
+        setPageData(event.data.data);
+        console.log('Received page data:', event.data.data);
+      }
+    };
+
+    window.addEventListener('message', handlePageData);
+
+    return () => {
+      window.removeEventListener('message', handlePageData);
+    };
+  }, []);
+
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };
+
+  // Build the iframe source URL, including the view=widget parameter and any page data
+  const iframeSrc = `/chat?view=widget${
+    pageData ? `&metaData=${encodeURIComponent(JSON.stringify(pageData))}` : ''
+  }`;
 
   return (
     <div style={{ position: "fixed", bottom: "20px", right: "20px" }}>
@@ -69,7 +92,7 @@ export const ChatWidget = () => {
           }}
         >
           <iframe
-            src="/chat?view=widget" // Ensure the parameter is passed to the iframe
+            src={iframeSrc} // Dynamic source with page data
             style={{ width: "100%", height: "100%", border: "none" }}
             title="Chat Interface"
             aria-label="Chat Interface"
