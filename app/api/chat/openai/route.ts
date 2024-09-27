@@ -24,18 +24,23 @@ export async function POST(request: Request) {
       organization: profile.openai_organization_id,
     });
 
-    // Append page data to the message context
-    const pageDataMessage = messages.find((msg) => msg.role === "system");
+    // Retrieve the page data from session storage (assuming it is passed from the frontend in messages)
+    const pageData = messages.find((msg) => msg.role === "system" && msg.content.includes("Context:"));
+
+    // Prepare the full context messages for the AI
+    const contextMessages = pageData
+      ? [...messages, pageData] // Include the page data message if available
+      : messages; // Use only the original messages if page data is not found
 
     const response = await openai.chat.completions.create({
       model: chatSettings.model as ChatCompletionCreateParamsBase["model"],
-      messages: [...messages, pageDataMessage], // Include the page data
+      messages: contextMessages,
       temperature: chatSettings.temperature,
       max_tokens:
         chatSettings.model === "gpt-4-vision-preview" ||
         chatSettings.model === "gpt-4o"
           ? 4096
-          : null, // TODO: Fix
+          : null, // Adjust max_tokens as needed
       stream: true,
     });
 
