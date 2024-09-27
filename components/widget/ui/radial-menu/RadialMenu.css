@@ -101,25 +101,25 @@
   }
   
   /* Adjust each section to their correct positions around the radial center */
-  .section-1 {
-    top: 10%; /* Adjust the percentage to achieve the desired position */
+  .radial-menu .section.section-1 {
+    top: 10%;
     left: 50%;
     transform: translateX(-50%);
   }
   
-  .section-2 {
+  .radial-menu .section.section-2 {
     top: 50%;
     right: 10%;
     transform: translateY(-50%);
   }
   
-  .section-3 {
+  .radial-menu .section.section-3 {
     bottom: 10%;
     left: 50%;
     transform: translateX(-50%);
   }
   
-  .section-4 {
+  .radial-menu .section.section-4 {
     top: 50%;
     left: 10%;
     transform: translateY(-50%);
