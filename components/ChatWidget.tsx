@@ -2,34 +2,26 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/browser-client";
 import { useRouter } from "next/router";
 
-// Function to retrieve the current session data
-const getSessionData = async () => {
+// Function to parse the session cookie and extract the session data
+const getSessionFromCookie = () => {
   try {
-    const { data, error } = await supabase.auth.getSession();
-
-    if (error) {
-      console.error("Error fetching session:", error.message);
+    // Assuming your cookie name is 'sb-access-token'
+    const sessionCookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("sb-access-token="));
+    
+    if (!sessionCookie) {
+      console.error("Session cookie not found.");
       return null;
     }
 
-    const session = data.session;
+    // Parse the JSON from the cookie value
+    const sessionData = JSON.parse(decodeURIComponent(sessionCookie.split("=")[1]));
+    console.log("Parsed session from cookie:", sessionData);
 
-    if (session) {
-      console.log("Session retrieved:", session);
-      return session;
-    } else {
-      console.log("No session found, signing in anonymously.");
-      const { error: signInError } = await supabase.auth.signInAnonymously();
-      if (signInError) {
-        console.error("Anonymous login failed:", signInError.message);
-        return null;
-      }
-      // Retry getting the session after anonymous sign-in
-      const retry = await supabase.auth.getSession();
-      return retry.data.session;
-    }
-  } catch (err) {
-    console.error("An unexpected error occurred:", err);
+    return sessionData;
+  } catch (error) {
+    console.error("Error parsing session from cookie:", error);
     return null;
   }
 };
@@ -40,10 +32,10 @@ export const ChatWidget = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const initializeSession = async () => {
-      const session = await getSessionData();
+    const initializeSession = () => {
+      const session = getSessionFromCookie();
       if (!session) {
-        console.error("Session could not be initialized.");
+        console.error("Session could not be initialized from cookie.");
       }
     };
 
@@ -64,22 +56,25 @@ export const ChatWidget = () => {
         setPageData(event.data.data);
         console.log("Received page data:", event.data.data);
 
-        // Retrieve the session data using the getSessionData function
-        const session = await getSessionData();
+        // Retrieve the session data using the cookie
+        const session = getSessionFromCookie();
 
         if (session) {
+          const userId = session.user.id; // Use user_id from session
           console.log("Session data available:", session);
 
           // Log the page data that will be inserted
           console.log("Attempting to insert page data:", {
-            session_id: session.access_token, // Ensure this is the correct identifier
+            user_id: userId,
+            session_id: session.access_token,
             url: event.data.data.url,
             title: event.data.data.title,
             description: event.data.data.description,
-            keywords: event.data.data.keywords,
-            product_handle: event.data.data.product?.handle,
-            product_title: event.data.data.product?.title,
-            product_price: event.data.data.product?.price,
+            product_info: {
+              handle: event.data.data.product?.handle,
+              title: event.data.data.product?.title,
+              price: event.data.data.product?.price,
+            },
             created_at: new Date().toISOString(),
           });
 
@@ -87,14 +82,16 @@ export const ChatWidget = () => {
           const { error } = await supabase
             .from("user_page_data")
             .insert({
-              session_id: session.access_token, // Ensure this is the correct identifier
-              url: event.data.data.url,
-              title: event.data.data.title,
-              description: event.data.data.description,
-              keywords: event.data.data.keywords,
-              product_handle: event.data.data.product?.handle,
-              product_title: event.data.data.product?.title,
-              product_price: event.data.data.product?.price,
+              user_id: userId, // Use the user_id to identify the session
+              session_id: session.access_token,
+              page_url: event.data.data.url,
+              page_title: event.data.data.title,
+              page_description: event.data.data.description,
+              product_info: {
+                handle: event.data.data.product?.handle,
+                title: event.data.data.product?.title,
+                price: event.data.data.product?.price,
+              },
               created_at: new Date().toISOString(),
             });
 
