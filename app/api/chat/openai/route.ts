@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const { data: pageData, error } = await supabase
       .from("user_page_data")
       .select(
-        "url, title, description, keywords, product_handle, product_title, product_price"
+        "page_url, page_title, page_description, product_info"
       )
       .eq("session_id", sessionId)
       .order("created_at", { ascending: false })
@@ -35,11 +35,17 @@ export async function POST(request: Request) {
       console.error("Error fetching page data:", error);
     }
 
+    // Extract product information from the JSON object, if available
+    const productInfo = pageData?.product_info || {};
+    const productHandle = productInfo.handle || "N/A";
+    const productTitle = productInfo.title || "N/A";
+    const productPrice = productInfo.price || "N/A";
+
     // Append page data to system message if available
     const systemMessage = pageData
       ? {
           role: "system",
-          content: `Context: You are assisting a user browsing ${pageData.title} (${pageData.url}). Description: ${pageData.description}. Keywords: ${pageData.keywords}. Product Info: Handle: ${pageData.product_handle}, Title: ${pageData.product_title}, Price: ${pageData.product_price}`,
+          content: `Context: You are assisting a user browsing ${pageData.page_title} (${pageData.page_url}). Description: ${pageData.page_description}. Product Info: Handle: ${productHandle}, Title: ${productTitle}, Price: ${productPrice}`,
         }
       : null;
 

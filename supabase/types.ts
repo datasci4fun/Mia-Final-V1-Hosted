@@ -1395,53 +1395,56 @@ export type Database = {
       }
       user_page_data: {
         Row: {
-          id: string
-          session_id: string
-          url: string
-          title: string
-          description: string | null
-          keywords: string | null
-          product_handle: string | null
-          product_title: string | null
-          product_price: string | null
-          created_at: string
-          updated_at: string | null
-        }
+          id: string;
+          session_id: string | null;
+          user_id: string | null;
+          page_url: string | null;
+          page_title: string | null;
+          page_description: string | null;
+          product_info: {
+            handle?: string | null;
+            title?: string | null;
+            price?: string | null;
+          } | null;
+          created_at: string;
+        };
         Insert: {
-          id?: string
-          session_id: string
-          url: string
-          title: string
-          description?: string | null
-          keywords?: string | null
-          product_handle?: string | null
-          product_title?: string | null
-          product_price?: string | null
-          created_at?: string
-          updated_at?: string | null
-        }
+          id?: string;
+          session_id?: string | null;
+          user_id?: string | null;
+          page_url?: string | null;
+          page_title?: string | null;
+          page_description?: string | null;
+          product_info?: {
+            handle?: string | null;
+            title?: string | null;
+            price?: string | null;
+          } | null;
+          created_at?: string;
+        };
         Update: {
-          id?: string
-          session_id?: string
-          url?: string
-          title?: string
-          description?: string | null
-          keywords?: string | null
-          product_handle?: string | null
-          product_title?: string | null
-          product_price?: string | null
-          created_at?: string
-          updated_at?: string | null
-        }
+          id?: string;
+          session_id?: string | null;
+          user_id?: string | null;
+          page_url?: string | null;
+          page_title?: string | null;
+          page_description?: string | null;
+          product_info?: {
+            handle?: string | null;
+            title?: string | null;
+            price?: string | null;
+          } | null;
+          created_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "user_page_data_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "sessions"
-            referencedColumns: ["id"]
+            foreignKeyName: "user_page_data_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "sessions";
+            referencedColumns: ["id"];
           }
-        ]
+        ];
       }
       workspaces: {
         Row: {
