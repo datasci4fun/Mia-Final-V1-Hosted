@@ -39,16 +39,16 @@ export const ChatWidget = () => {
   useEffect(() => {
     const handlePageData = (event: MessageEvent) => {
       // Check if the message is of type 'PAGE_DATA'
-      if (event.data.type === 'PAGE_DATA') {
+      if (event.data.type === "PAGE_DATA") {
         setPageData(event.data.data);
-        console.log('Received page data:', event.data.data);
+        console.log("Received page data:", event.data.data);
       }
     };
 
-    window.addEventListener('message', handlePageData);
+    window.addEventListener("message", handlePageData);
 
     return () => {
-      window.removeEventListener('message', handlePageData);
+      window.removeEventListener("message", handlePageData);
     };
   }, []);
 
@@ -56,10 +56,16 @@ export const ChatWidget = () => {
     setIsOpen(!isOpen);
   };
 
-  // Build the iframe source URL, including the view=widget parameter and any page data
-  const iframeSrc = `/chat?view=widget${
-    pageData ? `&metaData=${encodeURIComponent(JSON.stringify(pageData))}` : ''
-  }`;
+  // Function to send page data to the chat iframe
+  const sendPageDataToIframe = (iframe: HTMLIFrameElement) => {
+    if (pageData && iframe.contentWindow) {
+      iframe.contentWindow.postMessage({ type: "PAGE_DATA", data: pageData }, "*");
+      console.log("Page data sent to iframe:", pageData);
+    }
+  };
+
+  // Set up the iframe src including the view=widget parameter
+  const iframeSrc = `/chat?view=widget`;
 
   return (
     <div style={{ position: "fixed", bottom: "20px", right: "20px" }}>
@@ -92,10 +98,11 @@ export const ChatWidget = () => {
           }}
         >
           <iframe
-            src={iframeSrc} // Dynamic source with page data
+            src={iframeSrc} // Static src, but data is sent after loading
             style={{ width: "100%", height: "100%", border: "none" }}
             title="Chat Interface"
             aria-label="Chat Interface"
+            onLoad={(e) => sendPageDataToIframe(e.currentTarget as HTMLIFrameElement)} // Correct type casting
           ></iframe>
         </div>
       )}
