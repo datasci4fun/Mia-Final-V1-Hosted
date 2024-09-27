@@ -81,19 +81,18 @@
   }
   
   .radial-menu {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
     position: relative;
     width: 300px;
     height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   
   .section {
     position: absolute;
-    width: 50px; /* Adjust size if needed */
-    height: 50px;
+    width: 60px; /* Adjust size as needed */
+    height: 60px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -103,24 +102,27 @@
   
   /* Adjust each section to their correct positions around the radial center */
   .section-1 {
-    top: 10%; /* Adjust as needed */
+    top: 10%; /* Adjust the percentage to achieve the desired position */
     left: 50%;
     transform: translateX(-50%);
   }
   
   .section-2 {
+    top: 50%;
     right: 10%;
-    top: 45%;
+    transform: translateY(-50%);
   }
   
   .section-3 {
     bottom: 10%;
-    left: 45%;
+    left: 50%;
+    transform: translateX(-50%);
   }
   
   .section-4 {
-    left: 13%;
-    top: 45%;
+    top: 50%;
+    left: 10%;
+    transform: translateY(-50%);
   }
   
   .wedge-style {
