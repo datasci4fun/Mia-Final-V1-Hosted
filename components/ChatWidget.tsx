@@ -5,7 +5,6 @@ import { useRouter } from "next/router";
 // Function to dynamically identify and extract the session data from the cookie
 const getSessionFromDynamicCookie = () => {
   try {
-    // Find the cookie that matches the pattern 'sb-<random_string>-auth-token'
     const sessionCookie = document.cookie
       .split("; ")
       .find((row) => /sb-.*-auth-token=/.test(row));
@@ -15,7 +14,6 @@ const getSessionFromDynamicCookie = () => {
       return null;
     }
 
-    // Extract and parse the JSON session data from the cookie
     const sessionData = JSON.parse(decodeURIComponent(sessionCookie.split("=")[1]));
     console.log("Parsed session from dynamic cookie:", sessionData);
 
@@ -30,6 +28,7 @@ export const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [pageData, setPageData] = useState(null);
   const router = useRouter();
+  const [iframeRef, setIframeRef] = useState<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
     const initializeSession = () => {
@@ -52,19 +51,40 @@ export const ChatWidget = () => {
     }
   }, [router.query]);
 
-  // Listen for page data sent from page-data-collector.js script
+  // Manage scroll behavior when the chat widget is active
+  useEffect(() => {
+    const preventScroll = (event: Event) => {
+      event.preventDefault();
+    };
+
+    // Add scroll prevention when the chat is open
+    if (isOpen) {
+      document.body.style.overflow = "hidden"; // Prevents scrolling the main page
+      window.addEventListener("wheel", preventScroll, { passive: false }); // Prevent scroll events
+    } else {
+      document.body.style.overflow = ""; // Restore scrolling when the chat is closed
+      window.removeEventListener("wheel", preventScroll);
+    }
+
+    // Cleanup on component unmount or when `isOpen` changes
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("wheel", preventScroll);
+    };
+  }, [isOpen]);
+
+  // Listen for page data sent from the iframe
   useEffect(() => {
     const handlePageData = async (event: MessageEvent) => {
       if (event.data.type === "PAGE_DATA") {
         setPageData(event.data.data);
         console.log("Received page data:", event.data.data);
 
-        // Retrieve the session data using the getSessionFromDynamicCookie function
         const session = getSessionFromDynamicCookie();
 
         if (session && session.user && session.user.id) {
-          const userId = session.user.id; // Use user_id from session
-          const sessionId = session.access_token; // Use session_id from session
+          const userId = session.user.id;
+          const sessionId = session.access_token;
 
           if (!userId || !sessionId) {
             console.error("Invalid session data: user_id or session_id is undefined.");
@@ -72,21 +92,6 @@ export const ChatWidget = () => {
           }
 
           console.log("Session data available:", session);
-
-          // Log the page data that will be inserted
-          console.log("Attempting to insert page data:", {
-            user_id: userId,
-            session_id: sessionId,
-            page_url: event.data.data.url,
-            page_title: event.data.data.title,
-            page_description: event.data.data.description,
-            product_info: {
-              handle: event.data.data.product?.handle,
-              title: event.data.data.product?.title,
-              price: event.data.data.product?.price,
-            },
-            created_at: new Date().toISOString(),
-          });
 
           // Insert the data into Supabase
           try {
@@ -122,43 +127,51 @@ export const ChatWidget = () => {
 
     window.addEventListener("message", handlePageData);
 
-    // Add a basic POST request with manual data to test table insertion
-    const manualInsert = async () => {
-      try {
-        console.log("Attempting manual data insert for testing...");
-        const { data, error } = await supabase.from("user_page_data").insert({
-          user_id: "25348352-ebd4-4ebd-aba6-0aa1333b9c2e", // Replace with a valid UUID
-          session_id: "5df4af32-725c-4052-b2e0-aa919b83f205", // Replace with a valid UUID
-          page_url: "https://example.com/manual-insert",
-          page_title: "Manual Insert Test",
-          page_description: "This is a manually inserted test entry.",
-          product_info: { handle: "test-product", title: "Test Product", price: "99.99" },
-          created_at: new Date().toISOString(),
-        });
-        if (error) {
-          console.error("Manual data insert error:", error);
-        } else {
-          console.log("Manual data insert successful:", data);
-        }
-      } catch (err) {
-        console.error("Error during manual data insert:", err);
-      }
-    };
-
-    manualInsert();
-
+    // Return cleanup function
     return () => {
       window.removeEventListener("message", handlePageData);
     };
   }, []);
 
+  // Listen for page changes within the iframe and update the current page URL
+  useEffect(() => {
+    const handlePopState = () => {
+      if (iframeRef && iframeRef.contentWindow) {
+        iframeRef.contentWindow.postMessage(
+          { type: "PAGE_CHANGE", currentUrl: iframeRef.contentWindow.location.href },
+          "*"
+        );
+      }
+    };
+
+    // Respond to the parent requesting the current page URL
+    const handleGetPageRequest = (event: MessageEvent) => {
+      if (event.data.type === "GET_CURRENT_PAGE" && iframeRef && iframeRef.contentWindow) {
+        iframeRef.contentWindow.postMessage(
+          { type: "PAGE_CHANGE", currentUrl: iframeRef.contentWindow.location.href },
+          "*"
+        );
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    window.addEventListener("message", handleGetPageRequest);
+
+    // Cleanup listeners on component unmount
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("message", handleGetPageRequest);
+    };
+  }, [iframeRef]);
+
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };
 
-  const iframeSrc = `/chat?view=widget`;
+  // Load the last saved page or start with the chat view parameter
+  const iframeSrc = localStorage.getItem("widgetCurrentPage") || `/chat?view=widget`;
 
-    return (
+  return (
     <div style={{ position: "fixed", bottom: "20px", right: "20px" }}>
       <button
         onClick={toggleChat}
@@ -189,6 +202,7 @@ export const ChatWidget = () => {
           }}
         >
           <iframe
+            ref={(ref) => setIframeRef(ref)}
             src={iframeSrc}
             style={{ width: "100%", height: "100%", border: "none" }}
             title="Chat Interface"
