@@ -6,7 +6,6 @@ import {
   processPdf,
   processTxt
 } from "@/lib/retrieval/processing"
-import { processPdfWithHeaders } from "@/lib/retrieval/processing/processPdfWithHeaders";
 import { checkApiKey, getServerProfile } from "@/lib/server/server-chat-helpers"
 import { Database } from "@/supabase/types"
 import { FileItemChunk } from "@/types"
@@ -27,7 +26,6 @@ export async function POST(req: Request) {
 
     const file_id = formData.get("file_id") as string
     const embeddingsProvider = formData.get("embeddingsProvider") as string
-    const useAlternatePdfProcess = formData.get("useAlternatePdfProcess") === "true"; // new checkbox field
 
     const { data: fileMetadata, error: metadataError } = await supabaseAdmin
       .from("files")
@@ -87,14 +85,9 @@ export async function POST(req: Request) {
       case "md":
         chunks = await processMarkdown(blob)
         break
-        case "pdf":
-          // Check if alternate PDF processing should be used
-          if (useAlternatePdfProcess) {
-            chunks = await processPdfWithHeaders(blob); // new path
-          } else {
-            chunks = await processPdf(blob); // original path
-          }
-          break;
+      case "pdf":
+        chunks = await processPdf(blob)
+        break
       case "txt":
         chunks = await processTxt(blob)
         break

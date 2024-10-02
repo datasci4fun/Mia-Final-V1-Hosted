@@ -32,7 +32,7 @@ export const ChatInput: FC<ChatInputProps> = () => {
   } = useContext(ChatbotUIContext);
 
   const { chatInputRef, handleSendMessage, handleStopMessage, handleFocusChatInput } = useChatHandler();
-  const { filesToAccept, handleSelectDeviceFile, useAlternatePdfProcess, handleToggleAlternateProcessing } = useSelectFileHandler();
+  const { filesToAccept, handleSelectDeviceFile } = useSelectFileHandler();
   const { handleInputChange } = usePromptAndCommand(); // Destructure handleInputChange from the hook
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -137,18 +137,6 @@ export const ChatInput: FC<ChatInputProps> = () => {
             />
           )}
         </div>
-      </div>
-
-      <div className="flex justify-start mt-2">
-        <label className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={useAlternatePdfProcess}
-            onChange={handleToggleAlternateProcessing}
-            className="cursor-pointer"
-          />
-          <span>Use Alternate PDF Processing</span>
-        </label>
       </div>
     </>
   );
