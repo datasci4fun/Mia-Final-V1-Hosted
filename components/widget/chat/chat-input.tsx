@@ -1,36 +1,36 @@
-import { ChatbotUIContext } from "@/context/context"
-import useHotkey from "@/lib/hooks/use-hotkey"
-import { LLM_LIST } from "@/lib/models/llm/llm-list"
-import { cn } from "@/lib/utils"
+import { ChatbotUIContext } from "@/context/context";
+import useHotkey from "@/lib/hooks/use-hotkey";
+import { LLM_LIST } from "@/lib/models/llm/llm-list";
+import { cn } from "@/lib/utils";
 import {
   IconBolt,
   IconCirclePlus,
   IconPlayerStopFilled,
   IconSend
-} from "@tabler/icons-react"
-import Image from "next/image"
-import { FC, useContext, useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
-import { toast } from "sonner"
-import { Input } from "@/components/ui/input"
-import { TextareaAutosize } from "@/components/ui/textarea-autosize"
-import { ChatCommandInput } from "@/components/chat/chat-command-input"
-import { ChatFilesDisplay } from "@/components/chat/chat-files-display"
-import { useChatHandler } from "@/components/chat/chat-hooks/use-chat-handler"
-import { useChatHistoryHandler } from "@/components/chat/chat-hooks/use-chat-history"
-import { usePromptAndCommand } from "@/components/chat/chat-hooks/use-prompt-and-command"
-import { useSelectFileHandler } from "@/components/chat/chat-hooks/use-select-file-handler"
-import { useRouter, useSearchParams } from "next/navigation" // Import hooks for navigation and preserving parameters
+} from "@tabler/icons-react";
+import Image from "next/image";
+import { FC, useContext, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { TextareaAutosize } from "@/components/ui/textarea-autosize";
+import { ChatCommandInput } from "@/components/chat/chat-command-input";
+import { ChatFilesDisplay } from "@/components/chat/chat-files-display";
+import { useChatHandler } from "@/components/chat/chat-hooks/use-chat-handler";
+import { useChatHistoryHandler } from "@/components/chat/chat-hooks/use-chat-history";
+import { usePromptAndCommand } from "@/components/chat/chat-hooks/use-prompt-and-command";
+import { useSelectFileHandler } from "@/components/chat/chat-hooks/use-select-file-handler";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface ChatInputProps {}
 
 export const ChatInput: FC<ChatInputProps> = ({}) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   useHotkey("l", () => {
-    handleFocusChatInput()
-  })
+    handleFocusChatInput();
+  });
 
-  const [isTyping, setIsTyping] = useState<boolean>(false)
+  const [isTyping, setIsTyping] = useState<boolean>(false);
 
   const {
     isAssistantPickerOpen,
@@ -55,48 +55,52 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
     selectedTools,
     setSelectedTools,
     assistantImages
-  } = useContext(ChatbotUIContext)
+  } = useContext(ChatbotUIContext);
 
   const {
     chatInputRef,
     handleSendMessage,
     handleStopMessage,
     handleFocusChatInput
-  } = useChatHandler()
+  } = useChatHandler();
 
-  const { handleInputChange } = usePromptAndCommand()
+  const { handleInputChange } = usePromptAndCommand();
 
-  const { filesToAccept, handleSelectDeviceFile } = useSelectFileHandler()
+  const {
+    filesToAccept,
+    handleSelectDeviceFile,
+    useAlternatePdfProcess,
+    handleToggleAlternateProcessing
+  } = useSelectFileHandler();
 
   const {
     setNewMessageContentToNextUserMessage,
     setNewMessageContentToPreviousUserMessage
-  } = useChatHistoryHandler()
+  } = useChatHistoryHandler();
 
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Function to preserve existing URL parameters like `?view=widget` during navigation
   const preserveParams = () => {
-    const currentParams = new URLSearchParams(searchParams.toString())
-    return currentParams.toString() ? `?${currentParams.toString()}` : ""
-  }
+    const currentParams = new URLSearchParams(searchParams.toString());
+    return currentParams.toString() ? `?${currentParams.toString()}` : "";
+  };
 
   useEffect(() => {
     setTimeout(() => {
-      handleFocusChatInput()
-    }, 200) // FIX: hacky
-  }, [selectedPreset, selectedAssistant])
+      handleFocusChatInput();
+    }, 200); // FIX: hacky
+  }, [selectedPreset, selectedAssistant]);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (!isTyping && event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault()
-      setIsPromptPickerOpen(false)
-      handleSendMessage(userInput, chatMessages, false)
+      event.preventDefault();
+      setIsPromptPickerOpen(false);
+      handleSendMessage(userInput, chatMessages, false);
     }
 
-    // Consolidate conditions to avoid TypeScript error
     if (
       isPromptPickerOpen ||
       isFilePickerOpen ||
@@ -108,48 +112,48 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
         event.key === "ArrowUp" ||
         event.key === "ArrowDown"
       ) {
-        event.preventDefault()
+        event.preventDefault();
         // Toggle focus based on picker type
-        if (isPromptPickerOpen) setFocusPrompt(!focusPrompt)
-        if (isFilePickerOpen) setFocusFile(!focusFile)
-        if (isToolPickerOpen) setFocusTool(!focusTool)
-        if (isAssistantPickerOpen) setFocusAssistant(!focusAssistant)
+        if (isPromptPickerOpen) setFocusPrompt(!focusPrompt);
+        if (isFilePickerOpen) setFocusFile(!focusFile);
+        if (isToolPickerOpen) setFocusTool(!focusTool);
+        if (isAssistantPickerOpen) setFocusAssistant(!focusAssistant);
       }
     }
 
     if (event.key === "ArrowUp" && event.shiftKey && event.ctrlKey) {
-      event.preventDefault()
-      setNewMessageContentToPreviousUserMessage()
-      router.push(`/previous-chat${preserveParams()}`) // Preserve parameters when navigating to previous chat
+      event.preventDefault();
+      setNewMessageContentToPreviousUserMessage();
+      router.push(`/previous-chat${preserveParams()}`);
     }
 
     if (event.key === "ArrowDown" && event.shiftKey && event.ctrlKey) {
-      event.preventDefault()
-      setNewMessageContentToNextUserMessage()
-      router.push(`/next-chat${preserveParams()}`) // Preserve parameters when navigating to next chat
+      event.preventDefault();
+      setNewMessageContentToNextUserMessage();
+      router.push(`/next-chat${preserveParams()}`);
     }
-  }
+  };
 
   const handlePaste = (event: React.ClipboardEvent) => {
     const imagesAllowed = LLM_LIST.find(
       llm => llm.modelId === chatSettings?.model
-    )?.imageInput
+    )?.imageInput;
 
-    const items = event.clipboardData.items
+    const items = event.clipboardData.items;
     for (const item of items) {
       if (item.type.indexOf("image") === 0) {
         if (!imagesAllowed) {
           toast.error(
             `Images are not supported for this model. Use models like GPT-4 Vision instead.`
-          )
-          return
+          );
+          return;
         }
-        const file = item.getAsFile()
-        if (!file) return
-        handleSelectDeviceFile(file)
+        const file = item.getAsFile();
+        if (!file) return;
+        handleSelectDeviceFile(file);
       }
     }
-  }
+  };
 
   return (
     <>
@@ -205,31 +209,28 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
           <ChatCommandInput />
         </div>
 
-        <>
-          <IconCirclePlus
-            className="absolute bottom-[12px] left-3 cursor-pointer p-1 hover:opacity-50"
-            size={32}
-            onClick={() => fileInputRef.current?.click()}
-          />
+        <IconCirclePlus
+          className="absolute bottom-[12px] left-3 cursor-pointer p-1 hover:opacity-50"
+          size={32}
+          onClick={() => fileInputRef.current?.click()}
+        />
 
-          {/* Hidden input to select files from device */}
-          <Input
-            ref={fileInputRef}
-            className="hidden"
-            type="file"
-            onChange={e => {
-              if (!e.target.files) return
-              handleSelectDeviceFile(e.target.files[0])
-            }}
-            accept={filesToAccept}
-          />
-        </>
+        {/* Hidden input to select files from device */}
+        <Input
+          ref={fileInputRef}
+          className="hidden"
+          type="file"
+          onChange={e => {
+            if (!e.target.files) return;
+            handleSelectDeviceFile(e.target.files[0]);
+          }}
+          accept={filesToAccept}
+        />
 
         <TextareaAutosize
           textareaRef={chatInputRef}
           className="ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring text-md flex w-full resize-none rounded-md border-none bg-transparent px-14 py-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           placeholder={t(
-            // `Ask anything. Type "@" for assistants, "/" for prompts, "#" for files, and "!" for tools.`
             `Ask anything. Type @  /  #  !`
           )}
           onValueChange={handleInputChange}
@@ -256,15 +257,28 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
                 !userInput && "cursor-not-allowed opacity-50"
               )}
               onClick={() => {
-                if (!userInput) return
-
-                handleSendMessage(userInput, chatMessages, false)
+                if (!userInput) return;
+                handleSendMessage(userInput, chatMessages, false);
               }}
               size={30}
             />
           )}
         </div>
       </div>
+
+      <div className="flex justify-start mt-2">
+        <label className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            checked={useAlternatePdfProcess}
+            onChange={handleToggleAlternateProcessing}
+            className="cursor-pointer"
+          />
+          <span>Use Alternate PDF Processing</span>
+        </label>
+      </div>
     </>
-  )
-}
+  );
+};
+
+export default ChatInput;
