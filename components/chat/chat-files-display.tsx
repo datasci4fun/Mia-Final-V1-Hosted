@@ -180,25 +180,25 @@ export const ChatFilesDisplay: FC<ChatFilesDisplayProps> = ({}) => {
                 >
                   <div className="rounded bg-blue-500 p-2">
                     {(() => {
-                      let fileExtension = file.type && file.type.includes("/")
+                      let fileExtension = file.type.includes("/")
                         ? file.type.split("/")[1]
-                        : file.type;
+                        : file.type
 
                       switch (fileExtension) {
                         case "pdf":
-                          return <IconFileTypePdf />;
+                          return <IconFileTypePdf />
                         case "markdown":
-                          return <IconMarkdown />;
+                          return <IconMarkdown />
                         case "txt":
-                          return <IconFileTypeTxt />;
+                          return <IconFileTypeTxt />
                         case "json":
-                          return <IconJson />;
+                          return <IconJson />
                         case "csv":
-                          return <IconFileTypeCsv />;
+                          return <IconFileTypeCsv />
                         case "docx":
-                          return <IconFileTypeDocx />;
+                          return <IconFileTypeDocx />
                         default:
-                          return <IconFileFilled />;
+                          return <IconFileFilled />
                       }
                     })()}
                   </div>
