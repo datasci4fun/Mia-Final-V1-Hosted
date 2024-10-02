@@ -97,20 +97,15 @@ export const createFile = async (
   const baseName = validFilename.substring(0, extensionIndex < 0 ? undefined : extensionIndex);
   const maxBaseNameLength = 100 - (extension?.length || 0) - 1;
 
-  // Adjust file name length to ensure it fits within the max limit
   if (baseName.length > maxBaseNameLength) {
     fileRecord.name = baseName.substring(0, maxBaseNameLength) + "." + extension;
   } else {
     fileRecord.name = baseName + "." + extension;
   }
 
-  // Remove useAlternatePdfProcess before inserting into the database
-  const { useAlternatePdfProcess, ...fileRecordForDB } = fileRecord;
-
-  // Insert the file record into the database
   const { data: createdFile, error } = await supabase
     .from("files")
-    .insert([fileRecordForDB]) // Insert only the fields meant for the database
+    .insert([fileRecord])
     .select("*")
     .single();
 
@@ -118,62 +113,52 @@ export const createFile = async (
     throw new Error(error.message);
   }
 
-  // Create the file workspace record
   await createFileWorkspace({
     user_id: createdFile.user_id,
     file_id: createdFile.id,
     workspace_id
   });
 
-  // Upload the file and store the file path
   const filePath = await uploadFile(file, {
     name: createdFile.name,
     user_id: createdFile.user_id,
     file_id: createdFile.name
   });
 
-  // Update the file record with the file path
   await updateFile(createdFile.id, {
     file_path: filePath
   });
 
-  // Prepare FormData for processing the file
   const formData = new FormData();
   formData.append("file_id", createdFile.id);
   formData.append("embeddingsProvider", embeddingsProvider);
 
-  // Include the `useAlternatePdfProcess` flag in the form data if it was provided
-  if (useAlternatePdfProcess) {
-    formData.append("useAlternatePdfProcess", String(useAlternatePdfProcess));
+  // Include the `useAlternatePdfProcess` in the form data if it exists
+  if (fileRecord.useAlternatePdfProcess) {
+    formData.append("useAlternatePdfProcess", String(fileRecord.useAlternatePdfProcess));
   }
 
-  // Send the file to the processing API
   const response = await fetch("/api/retrieval/process", {
     method: "POST",
     body: formData
   });
 
-  // Handle response errors and clean up if necessary
   if (!response.ok) {
     const jsonText = await response.text();
     const json = JSON.parse(jsonText);
     console.error(
-      `Error processing file: ${createdFile.id}, status: ${response.status}, response: ${json.message}`
+      `Error processing file:${createdFile.id}, status:${response.status}, response:${json.message}`
     );
-    toast.error("Failed to process file. Reason: " + json.message, {
+    toast.error("Failed to process file. Reason:" + json.message, {
       duration: 10000
     });
-
-    // Delete the file if processing fails
     await deleteFile(createdFile.id);
   }
 
-  // Fetch the final file record after processing
   const fetchedFile = await getFileById(createdFile.id);
 
   return fetchedFile;
 };
-
 
 
 // // Handle docx files
