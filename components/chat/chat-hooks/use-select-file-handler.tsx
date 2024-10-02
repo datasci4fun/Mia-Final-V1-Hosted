@@ -53,20 +53,18 @@ export const useSelectFileHandler = () => {
     setUseRetrieval(true);
 
     if (file) {
-      // Ensure file.type is defined before calling .includes()
-      let simplifiedFileType = file.type ? file.type.split("/")[1] : '';
+      let simplifiedFileType = file.type.split("/")[1];
       let reader = new FileReader();
 
-      // Check if file.type exists and then call .includes()
-      if (file.type && file.type.includes("image")) {
+      if (file.type.includes("image")) {
         reader.readAsDataURL(file);
       } else if (ACCEPTED_FILE_TYPES.split(",").includes(file.type)) {
-        if (simplifiedFileType && simplifiedFileType.includes("vnd.adobe.pdf")) {
+        if (simplifiedFileType.includes("vnd.adobe.pdf")) {
           simplifiedFileType = "pdf";
         } else if (
-          simplifiedFileType &&
           simplifiedFileType.includes(
-            "vnd.openxmlformats-officedocument.wordprocessingml.document" || "docx"
+            "vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+              "docx"
           )
         ) {
           simplifiedFileType = "docx";
@@ -84,9 +82,9 @@ export const useSelectFileHandler = () => {
 
         // Handle docx files
         if (
-          file.type &&
           file.type.includes(
-            "vnd.openxmlformats-officedocument.wordprocessingml.document" || "docx"
+            "vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+              "docx"
           )
         ) {
           const arrayBuffer = await file.arrayBuffer();
@@ -130,7 +128,7 @@ export const useSelectFileHandler = () => {
           return;
         } else {
           // Use readAsArrayBuffer for PDFs and readAsText for other types
-          file.type && file.type.includes("pdf")
+          file.type.includes("pdf")
             ? reader.readAsArrayBuffer(file)
             : reader.readAsText(file);
         }
@@ -140,7 +138,7 @@ export const useSelectFileHandler = () => {
 
       reader.onloadend = async function () {
         try {
-          if (file.type && file.type.includes("image")) {
+          if (file.type.includes("image")) {
             const imageUrl = URL.createObjectURL(file);
 
             setNewMessageImages(prev => [
