@@ -12,14 +12,14 @@ interface FileItemProps {
 }
 
 export const FileItem: FC<FileItemProps> = ({ file }) => {
-  const [name, setName] = useState(file.name);
-  const [isTyping, setIsTyping] = useState(false);
-  const [description, setDescription] = useState(file.description);
+  const [name, setName] = useState(file.name)
+  const [isTyping, setIsTyping] = useState(false)
+  const [description, setDescription] = useState(file.description)
 
   const getLinkAndView = async () => {
-    const link = await getFileFromStorage(file.file_path);
-    window.open(link, "_blank");
-  };
+    const link = await getFileFromStorage(file.file_path)
+    window.open(link, "_blank")
+  }
 
   return (
     <SidebarItem
@@ -40,10 +40,9 @@ export const FileItem: FC<FileItemProps> = ({ file }) => {
           <div className="flex flex-col justify-between">
             <div>{file.type}</div>
 
-            {/* Check if file.size is defined and valid */}
-            <div>{file.size ? formatFileSize(file.size) : "Unknown size"}</div>
+            <div>{formatFileSize(file.size)}</div>
 
-            <div>{file.tokens?.toLocaleString() ?? "No tokens available"} tokens</div>
+            <div>{file.tokens.toLocaleString()} tokens</div>
           </div>
 
           <div className="space-y-1">
@@ -70,31 +69,27 @@ export const FileItem: FC<FileItemProps> = ({ file }) => {
         </>
       )}
     />
-  );
-};
+  )
+}
 
-export const formatFileSize = (sizeInBytes: number | undefined): string => {
-  if (!sizeInBytes || isNaN(sizeInBytes)) {
-    return "Unknown size";
-  }
-
-  let size = sizeInBytes;
-  let unit = "bytes";
+export const formatFileSize = (sizeInBytes: number): string => {
+  let size = sizeInBytes
+  let unit = "bytes"
 
   if (size >= 1024) {
-    size /= 1024;
-    unit = "KB";
+    size /= 1024
+    unit = "KB"
   }
 
   if (size >= 1024) {
-    size /= 1024;
-    unit = "MB";
+    size /= 1024
+    unit = "MB"
   }
 
   if (size >= 1024) {
-    size /= 1024;
-    unit = "GB";
+    size /= 1024
+    unit = "GB"
   }
 
-  return `${size.toFixed(2)} ${unit}`;
-};
+  return `${size.toFixed(2)} ${unit}`
+}
