@@ -11,7 +11,7 @@ export const ACCEPTED_FILE_TYPES = [
   "application/json",
   "text/markdown",
   "application/pdf",
-  "text/plain",
+  "text/plain"
 ].join(",");
 
 export const useSelectFileHandler = () => {
@@ -23,7 +23,7 @@ export const useSelectFileHandler = () => {
     setNewMessageFiles,
     setShowFilesDisplay,
     setFiles,
-    setUseRetrieval,
+    setUseRetrieval
   } = useContext(ChatbotUIContext);
 
   const [filesToAccept, setFilesToAccept] = useState(ACCEPTED_FILE_TYPES);
@@ -35,7 +35,7 @@ export const useSelectFileHandler = () => {
 
   const handleFilesToAccept = () => {
     const model = chatSettings?.model;
-    const FULL_MODEL = LLM_LIST.find((llm) => llm.modelId === model);
+    const FULL_MODEL = LLM_LIST.find(llm => llm.modelId === model);
 
     if (!FULL_MODEL) return;
 
@@ -54,112 +54,104 @@ export const useSelectFileHandler = () => {
 
     if (file) {
       // Ensure file.type is defined before calling .includes()
-      let simplifiedFileType = file.type ? file.type.split("/")[1] : "unknown";
+      let simplifiedFileType = file.type ? file.type.split("/")[1] : '';
       let reader = new FileReader();
 
       // Check if file.type exists and then call .includes()
       if (file.type && file.type.includes("image")) {
         reader.readAsDataURL(file);
-      } else if (ACCEPTED_FILE_TYPES.split(",").includes(file.type || "")) {
-        if (simplifiedFileType.includes("vnd.adobe.pdf")) {
+      } else if (ACCEPTED_FILE_TYPES.split(",").includes(file.type)) {
+        if (simplifiedFileType && simplifiedFileType.includes("vnd.adobe.pdf")) {
           simplifiedFileType = "pdf";
         } else if (
-          simplifiedFileType.includes("vnd.openxmlformats-officedocument.wordprocessingml.document") ||
-          simplifiedFileType.includes("docx")
+          simplifiedFileType &&
+          simplifiedFileType.includes(
+            "vnd.openxmlformats-officedocument.wordprocessingml.document" || "docx"
+          )
         ) {
           simplifiedFileType = "docx";
         }
 
-        setNewMessageFiles((prev) => [
+        setNewMessageFiles(prev => [
           ...prev,
           {
             id: "loading",
             name: file.name,
             type: simplifiedFileType,
-            file: file,
-          },
+            file: file
+          }
         ]);
 
         // Handle docx files
         if (
           file.type &&
-          file.type.includes("vnd.openxmlformats-officedocument.wordprocessingml.document") ||
-          file.type.includes("docx")
+          file.type.includes(
+            "vnd.openxmlformats-officedocument.wordprocessingml.document" || "docx"
+          )
         ) {
-          try {
-            const arrayBuffer = await file.arrayBuffer();
-            const result = await mammoth.extractRawText({ arrayBuffer });
+          const arrayBuffer = await file.arrayBuffer();
+          const result = await mammoth.extractRawText({
+            arrayBuffer
+          });
 
-            const createdFile = await createDocXFile(
-              result.value,
-              file,
-              {
-                user_id: profile.user_id,
-                description: "",
-                file_path: "",
-                name: file.name,
-                size: file.size,
-                tokens: 0,
-                type: simplifiedFileType,
-              },
-              selectedWorkspace.id,
-              chatSettings.embeddingsProvider
-            );
+          const createdFile = await createDocXFile(
+            result.value,
+            file,
+            {
+              user_id: profile.user_id,
+              description: "",
+              file_path: "",
+              name: file.name,
+              size: file.size,
+              tokens: 0,
+              type: simplifiedFileType
+            },
+            selectedWorkspace.id,
+            chatSettings.embeddingsProvider
+          );
 
-            setFiles((prev) => [...prev, createdFile]);
+          setFiles(prev => [...prev, createdFile]);
 
-            setNewMessageFiles((prev) =>
-              prev.map((item) =>
-                item.id === "loading"
-                  ? {
-                      id: createdFile.id,
-                      name: createdFile.name,
-                      type: createdFile.type,
-                      file: file,
-                    }
-                  : item
-              )
-            );
-          } catch (error: unknown) {  // Explicitly mark the error as unknown
-            const errorMessage = error instanceof Error ? error.message : String(error); // Narrow or cast to string
-            toast.error("Failed to upload. " + errorMessage, {
-              duration: 10000
-            });
-            setNewMessageImages(prev =>
-              prev.filter(img => img.messageId !== "temp")
-            );
-            setNewMessageFiles(prev => prev.filter(file => file.id !== "loading"));
-          }
+          setNewMessageFiles(prev =>
+            prev.map(item =>
+              item.id === "loading"
+                ? {
+                    id: createdFile.id,
+                    name: createdFile.name,
+                    type: createdFile.type,
+                    file: file
+                  }
+                : item
+            )
+          );
 
           reader.onloadend = null;
+
           return;
         } else {
           // Use readAsArrayBuffer for PDFs and readAsText for other types
-          file.type.includes("pdf")
+          file.type && file.type.includes("pdf")
             ? reader.readAsArrayBuffer(file)
             : reader.readAsText(file);
         }
       } else {
-        toast.error("Unsupported file type: " + file.type, {
-          duration: 5000,
-        });
-        return;
+        throw new Error("Unsupported file type");
       }
 
       reader.onloadend = async function () {
         try {
-          if (file.type.includes("image")) {
+          if (file.type && file.type.includes("image")) {
             const imageUrl = URL.createObjectURL(file);
 
-            setNewMessageImages((prev) => [
+            setNewMessageImages(prev => [
               ...prev,
               {
                 messageId: "temp",
                 path: "",
                 base64: reader.result, // base64 image
                 url: imageUrl,
-                file,
-              },
+                file
+              }
             ]);
           } else {
             const createdFile = await createFile(
@@ -172,38 +164,35 @@ export const useSelectFileHandler = () => {
                 size: file.size,
                 tokens: 0,
                 type: simplifiedFileType,
-                useAlternatePdfProcess, // Pass checkbox state to backend
+                useAlternatePdfProcess // Pass checkbox state to backend
               },
               selectedWorkspace.id,
               chatSettings.embeddingsProvider
             );
 
-            setFiles((prev) => [...prev, createdFile]);
+            setFiles(prev => [...prev, createdFile]);
 
-            setNewMessageFiles((prev) =>
-              prev.map((item) =>
+            setNewMessageFiles(prev =>
+              prev.map(item =>
                 item.id === "loading"
                   ? {
                       id: createdFile.id,
                       name: createdFile.name,
                       type: createdFile.type,
-                      file: file,
+                      file: file
                     }
                   : item
               )
             );
           }
-        } catch (error: unknown) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          toast.error("Failed to process DOCX file. " + errorMessage, {
+        } catch (error: any) {
+          toast.error("Failed to upload. " + error?.message, {
             duration: 10000
           });
-          setNewMessageImages((prev) =>
-            prev.filter((img) => img.messageId !== "temp")
+          setNewMessageImages(prev =>
+            prev.filter(img => img.messageId !== "temp")
           );
-          setNewMessageFiles((prev) =>
-            prev.filter((file) => file.id !== "loading")
-          );
+          setNewMessageFiles(prev => prev.filter(file => file.id !== "loading"));
         }
       };
     }
@@ -218,6 +207,6 @@ export const useSelectFileHandler = () => {
     handleSelectDeviceFile,
     filesToAccept,
     useAlternatePdfProcess,
-    handleToggleAlternateProcessing, // Return toggle handler
+    handleToggleAlternateProcessing // Return toggle handler
   };
 };
