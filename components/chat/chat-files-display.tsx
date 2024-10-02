@@ -55,11 +55,11 @@ export const ChatFilesDisplay: FC<ChatFilesDisplayProps> = ({}) => {
   ]
 
   const combinedChatFiles = [
-    ...(newMessageFiles?.filter(
-      file => !chatFiles?.some(chatFile => chatFile.id === file.id)
-    ) || []),
-    ...(chatFiles || [])
-  ];
+    ...newMessageFiles.filter(
+      file => !chatFiles.some(chatFile => chatFile.id === file.id)
+    ),
+    ...chatFiles
+  ]
 
   const combinedMessageFiles = [...messageImages, ...combinedChatFiles]
 
@@ -156,7 +156,8 @@ export const ChatFilesDisplay: FC<ChatFilesDisplayProps> = ({}) => {
                 />
               </div>
             ))}
-            {combinedChatFiles.map((file, index) => (
+
+            {combinedChatFiles.map((file, index) =>
               file.id === "loading" ? (
                 <div
                   key={index}
@@ -167,20 +168,22 @@ export const ChatFilesDisplay: FC<ChatFilesDisplayProps> = ({}) => {
                   </div>
 
                   <div className="truncate text-sm">
-                    <div className="truncate">{file?.name || "Loading..."}</div>
-                    <div className="truncate opacity-50">{file?.type || "Unknown"}</div>
+                    <div className="truncate">{file.name}</div>
+                    <div className="truncate opacity-50">{file.type}</div>
                   </div>
                 </div>
               ) : (
                 <div
-                  key={file?.id || index}
+                  key={file.id}
                   className="relative flex h-[64px] cursor-pointer items-center space-x-4 rounded-xl border-2 px-4 py-3 hover:opacity-50"
                   onClick={() => getLinkAndView(file)}
                 >
                   <div className="rounded bg-blue-500 p-2">
                     {(() => {
-                      // Check if file and file.type are defined before attempting operations
-                      const fileExtension = file?.type ? (file.type.includes("/") ? file.type.split("/")[1] : file.type) : "unknown";
+                      let fileExtension = file.type && file.type.includes("/")
+                        ? file.type.split("/")[1]
+                        : file.type;
+
                       switch (fileExtension) {
                         case "pdf":
                           return <IconFileTypePdf />;
@@ -201,24 +204,22 @@ export const ChatFilesDisplay: FC<ChatFilesDisplayProps> = ({}) => {
                   </div>
 
                   <div className="truncate text-sm">
-                    <div className="truncate">{file?.name || "Unnamed File"}</div>
+                    <div className="truncate">{file.name}</div>
                   </div>
 
                   <IconX
                     className="bg-muted-foreground border-primary absolute right-[-6px] top-[-6px] flex size-5 cursor-pointer items-center justify-center rounded-full border-DEFAULT text-[10px] hover:border-red-500 hover:bg-white hover:text-red-500"
                     onClick={e => {
-                      e.stopPropagation();
+                      e.stopPropagation()
                       setNewMessageFiles(
                         newMessageFiles.filter(f => f.id !== file.id)
-                      );
-                      setChatFiles(
-                        chatFiles.filter(f => f.id !== file.id)
-                      );
+                      )
+                      setChatFiles(chatFiles.filter(f => f.id !== file.id))
                     }}
                   />
                 </div>
               )
-            ))}
+            )}
           </div>
         </div>
       </div>
