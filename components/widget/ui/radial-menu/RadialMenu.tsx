@@ -47,9 +47,8 @@ export const RadialMenu: FC<RadialMenuProps> = ({ isOpen, toggleMenu }) => {
   }, [isOpen])
 
   const handleOverlayToggle = (contentType: ContentType) => {
-    console.log('Opening overlay for content type:', contentType); // Log content type
-    setCurrentContentType(contentType);
-    setOverlayOpen(!overlayOpen);
+    setCurrentContentType(contentType)
+    setOverlayOpen(!overlayOpen) // Toggle overlay state
   }
 
   // Close overlay and menu when a section is clicked

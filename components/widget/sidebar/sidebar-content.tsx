@@ -1,4 +1,4 @@
-// C:\Users\blixa\Documents\xampp\git\Mia-Final-V1-Hosted\components\widget\sidebar\sidebar-content.tsx
+// C:\Users\blixa\Documents\xampp\git\Mia-Final-V1\components\widget\sidebar\sidebar-content.tsx
 
 import { Tables } from "@/supabase/types"
 import { ContentType } from "@/types"
@@ -66,7 +66,7 @@ interface CollectionData {
 interface AssistantData {
   id: string
   name: string
-  description: string
+  description: string // Placeholders, ensure it's defined
   created_at: string
   folder_id: string | null
   sharing: string
