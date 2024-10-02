@@ -1,4 +1,4 @@
-// C:\Users\blixa\Documents\xampp\git\Mia-Final-V1\components\widget\ui\OverlaySidebar.tsx
+// C:\Users\blixa\Documents\xampp\git\Mia-Final-V1-Hosted\components\widget\ui\OverlaySidebar.tsx
 
 "use client"
 
